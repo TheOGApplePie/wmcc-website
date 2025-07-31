@@ -40,3 +40,17 @@ body {
 .carousel {
   max-height: 90dvh;
 }
+.community-image {
+  background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 25%,
+      rgba(255, 255, 255, 1) 50%
+    ),
+    url("/community-dua.jpg");
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 10px;
+}
+.event-pill {
+  width: 450px;
+}

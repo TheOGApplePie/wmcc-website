@@ -8,19 +8,19 @@ export default function Header() {
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
   const headerLinks = [
     {
-      link: "#",
+      link: "/",
       title: "Home",
     },
     {
-      link: "#",
+      link: "events",
       title: "Programs & Services",
     },
     {
-      link: "#",
+      link: "about",
       title: "About WMCC",
     },
     {
-      link: "#",
+      link: "contact",
       title: "Contact",
     },
     {
