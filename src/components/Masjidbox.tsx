@@ -9,15 +9,10 @@ export default function MasjidboxWidget() {
     script.defer = true;
 
     document.body.appendChild(script);
-
-    // Optional: cleanup on unmount
-    // return () => {
-    //   document.body.removeChild(script);
-    // };
   }, []);
 
   return (
-    <div className="container w-100 mt-4">
+    <div className="mt-4">
       <a
         data-masjidbox-widget="6sWyjAptQu-_pEdxsZrtL"
         data-masjidbox-ifr

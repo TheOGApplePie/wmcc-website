@@ -1,90 +1,74 @@
+import CarouselComponent from "../components/Carousel";
+import MasjidboxWidget from "../components/Masjidbox";
+import EventPill from "../components/eventPill";
 import Image from "next/image";
-import styles from "./page.module.css";
-import Carousel from "@/components/Carousel";
-import MasjidboxWidget from "@/components/Masjidbox";
-import EventPill from "@/components/eventPill";
+import { createClient } from "../utils/supabase/server";
 
-export default function Home() {
-  const currentEvents = [
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      title: "WMCC Soccer Tournament",
-      location: "Soccer World Hamilton",
-      datetime: "2025-08-02T20:30:00",
-    },
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      title: "WMCC Soccer Tournament",
-      location: "Soccer World Hamilton",
-      datetime: "2025-08-02T20:30:00",
-    },
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      title: "WMCC Soccer Tournament",
-      location: "Soccer World Hamilton",
-      datetime: "2025-08-02T20:30:00",
-    },
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      title: "WMCC Soccer Tournament",
-      location: "Soccer World Hamilton",
-      datetime: "2025-08-02T20:30:00",
-    },
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      title: "WMCC Soccer Tournament",
-      location: "Soccer World Hamilton",
-      datetime: "2025-08-02T20:30:00",
-    },
-  ];
-  const slides = [
-    {
-      imgUrl: "soccer.jpeg",
-      imgAlt: "WMCC MusFit soccer tournament poster",
-      caption: `Do you you have what it takes to be the soccer champion in the Hamilton region? Register your team and we'll see you at the tournament!`,
-      buttonLink: "https://bit.ly/wmcc-soccer",
-      buttonCaption: "Register Now",
-    },
-    {
-      imgUrl: "wisbbq.jpeg",
-      imgAlt: "WIS BBQ poster poster",
-      caption: `Join us and learn more about how the Waterdown Islamic School can bring value to your entire family`,
-      buttonLink: "https://bit.ly/wis-open-house-2025",
-      buttonCaption: "Register Now",
-    },
-  ];
+export interface Slide {
+  id: number;
+  posterurl: string;
+  registrationlink: string;
+  caption: string;
+  posteralt: string;
+  buttoncaption: string;
+}
+export interface UpcomingEvent {
+  id: number;
+  posterurl: string;
+  posteralt: string;
+  title: string;
+  startdate: string;
+  location: string;
+}
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: slides } = await supabase
+    .from("events")
+    .select("id,posterurl,registrationlink,caption,posteralt,buttoncaption")
+    .eq("featureinslideshow", true);
+  
+  console.log("Fetched slides:", slides); // Debug log
+  
+  const { data: currentEvents } = await supabase
+    .from("events")
+    .select("id, posterurl,posteralt,title,startdate, location")
+    .gte("startdate", new Date().toISOString())
+    .order("startdate", { ascending: true });
+  
   return (
-    <div>
+    <div className="">
       <section>
-        <Carousel content={slides}></Carousel>
+        <CarouselComponent content={slides as Slide[] || []}></CarouselComponent>
       </section>
+      <section>{/* <MasjidboxWidget /> */}</section>
       <section>
-        <MasjidboxWidget />
-      </section>
-      <section>
-        <div className="container">
-          <h1>About Us</h1>
-          <div className="row community-image">
-            <div className="col-6 "></div>
-            <div className="col-6">
-              <p className="fs-4">
+        <div className="mx-6">
+          <h1 className="text-4xl">About Us</h1>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="md:col-span-1 col-span-2 ">
+              <Image
+                className="object-cover rounded-2xl"
+                src={"/community-dua.jpg"}
+                alt="About us"
+                height={626}
+                width={626}
+                // style={aboutUsImageStyle}
+              />
+            </div>
+            <div className="md:col-span-1 col-span-2">
+              <p className="text-md md:text-2xl">
                 The Waterdown Muslim Community Centre (WMCC) is a registered
                 charitable organization devoted to uplifting and connecting
                 Muslim families in Waterdown, Hamilton, and neighbouring areas.
               </p>
-              <p className="fs-4">
+              <p className="text-md md:text-2xl my-3">
                 Rooted in the values of inclusivity, unity, and collaboration,
                 WMCC offers charitable, educational, spiritual, and social
                 programs designed to nurture personal growth, strengthen
                 families, and build a vibrant, faith-centered community—all
                 guided by the teachings of the Qur’an and Sunnah.
               </p>
-              <p className="fs-4">
+              <p className="text-md md:text-2xl">
                 We believe in the power of togetherness. By fostering meaningful
                 engagement, joyful experiences, and a strong sense of belonging,
                 WMCC strives to create enriching opportunities that celebrate
@@ -95,11 +79,11 @@ export default function Home() {
         </div>
       </section>
       <section className="mt-5">
-        <div className="container">
-          <h1>Current and upcoming events</h1>
-          <div className="d-flex overflow-x-scroll">
-            {currentEvents.map((upcomingEvent, index) => (
-              <div key={index} className="mx-2">
+        <div className="container mx-4">
+          <h1 className="text-4xl">Current and upcoming events</h1>
+          <div className="flex overflow-x-scroll">
+            {currentEvents?.map((upcomingEvent, index) => (
+              <div key={upcomingEvent.id} className="mx-2">
                 <EventPill upcomingEvent={upcomingEvent}></EventPill>
               </div>
             ))}

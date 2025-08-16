@@ -1,31 +1,37 @@
+import { UpcomingEvent } from "../app/page";
+import Image from "next/image";
+
 interface EventPillAttributes {
-  upcomingEvent: {
-    imgUrl: string;
-    imgAlt: string;
-    title: string;
-    location: string;
-    datetime: string;
-  };
+  upcomingEvent: UpcomingEvent;
 }
-export default function EventPill({ upcomingEvent }: EventPillAttributes) {
-  const eventDate = new Date(upcomingEvent.datetime);
+export default function EventPill({
+  upcomingEvent,
+}: Readonly<EventPillAttributes>) {
+  const eventDate = new Date(upcomingEvent.startdate);
   return (
-    <div className="container border rounded p-3">
-      <div className="row event-pill">
-        <div className="col-6">
-          <img
+    <div className="container border rounded-sm p-3">
+      <div className="grid grid-cols-2 event-pill">
+        <div className="col-span-1">
+          {/* <Image
             className="img-fluid text-center"
-            height={"150px"}
-            src={upcomingEvent.imgUrl}
-            alt={upcomingEvent.imgAlt}
-          />
+            height={300}
+            width={200}
+            src={upcomingEvent.posterurl}
+            alt={upcomingEvent.posteralt}
+          /> */}
         </div>
-        <div className="col-6">
-          <p className="fs-5">{upcomingEvent.title}</p>
-          <p className="fs-5">{upcomingEvent.location}</p>
-          <p className="fs-5">
-            {eventDate.getDate()}/{eventDate.getMonth()} at{" "}
-            {eventDate.getHours()}:{eventDate.getMinutes()}
+        <div className="col-span-1">
+          <p className="text-lg">{upcomingEvent.title}</p>
+          <p className="text-lg">{upcomingEvent.location}</p>
+          <p className="text-lg">
+            {eventDate.toLocaleString(undefined, {
+              hour12: true,
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </p>
         </div>
       </div>

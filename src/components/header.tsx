@@ -29,27 +29,27 @@ export default function Header() {
     },
   ];
   return (
-    <header className="d-flex justify-content-between">
+    <header className="flex justify-between">
       <div>
         <img src="wmcc.svg" alt="" />
       </div>
-      <div className="py-2 px-4 d-none d-md-flex flex-1 justify-content-between align-items-center">
+      <div className="py-2 px-4 hidden md:flex flex-1 justify-end items-center">
         {headerLinks.map((link) => (
           <a
-            className="px-3 fw-bold text-white text-decoration-none"
+            className="px-3 text-xl text-white text-decoration-none"
             key={`big-` + link.title}
             href={link.link}
           >
             {link.title}
           </a>
         ))}
-        <button className="border-0 fw-bold p-3 rounded text-white">
+        <button className="border-0 text-xl p-3 rounded-sm text-white">
           Donate
         </button>
       </div>
-      <div className="d-flex d-md-none align-items-center py-2 px-4">
+      <div className="flex md:hidden items-center py-2 px-4">
         <button
-          className="border-0 fw-bold p-3 rounded text-white"
+          className="border-0 text-xl p-3 rounded-sm text-white"
           onClick={() => setShowDropdownMenu(!showDropdownMenu)}
         >
           <FontAwesomeIcon icon={faBars} />
