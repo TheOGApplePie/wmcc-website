@@ -26,19 +26,21 @@ export default async function Home() {
     .from("events")
     .select("id,posterurl,registrationlink,caption,posteralt,buttoncaption")
     .eq("featureinslideshow", true);
-  
+
   console.log("Fetched slides:", slides); // Debug log
-  
+
   const { data: currentEvents } = await supabase
     .from("events")
     .select("id, posterurl,posteralt,title,startdate, location")
     .gte("startdate", new Date().toISOString())
     .order("startdate", { ascending: true });
-  
+
   return (
     <div className="">
       <section>
-        <CarouselComponent content={slides as Slide[] || []}></CarouselComponent>
+        <CarouselComponent
+          content={(slides as Slide[]) || []}
+        ></CarouselComponent>
       </section>
       <section>{/* <MasjidboxWidget /> */}</section>
       <section>
@@ -82,7 +84,7 @@ export default async function Home() {
         <div className="container mx-4">
           <h1 className="text-4xl">Current and upcoming events</h1>
           <div className="flex overflow-x-scroll">
-            {currentEvents?.map((upcomingEvent, index) => (
+            {currentEvents?.map((upcomingEvent) => (
               <div key={upcomingEvent.id} className="mx-2">
                 <EventPill upcomingEvent={upcomingEvent}></EventPill>
               </div>
