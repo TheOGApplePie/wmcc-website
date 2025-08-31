@@ -12,13 +12,13 @@ export default function EventPill({
     <div className="container border rounded-sm p-3">
       <div className="grid grid-cols-2 event-pill">
         <div className="col-span-1">
-          {/* <Image
+          <Image
             className="img-fluid text-center"
             height={300}
             width={200}
             src={upcomingEvent.posterurl}
             alt={upcomingEvent.posteralt}
-          /> */}
+          />
         </div>
         <div className="col-span-1">
           <p className="text-lg">{upcomingEvent.title}</p>

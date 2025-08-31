@@ -27,8 +27,6 @@ export default async function Home() {
     .select("id,posterurl,registrationlink,caption,posteralt,buttoncaption")
     .eq("featureinslideshow", true);
 
-  console.log("Fetched slides:", slides); // Debug log
-
   const { data: currentEvents } = await supabase
     .from("events")
     .select("id, posterurl,posteralt,title,startdate, location")
@@ -36,25 +34,26 @@ export default async function Home() {
     .order("startdate", { ascending: true });
 
   return (
-    <div className="">
+    <div>
       <section>
         <CarouselComponent
           content={(slides as Slide[]) || []}
         ></CarouselComponent>
       </section>
-      <section>{/* <MasjidboxWidget /> */}</section>
       <section>
-        <div className="mx-6">
-          <h1 className="text-4xl">About Us</h1>
+        <MasjidboxWidget />
+      </section>
+      <section>
+        <div className="border-t-4 p-8 bg-[var(--main-colour-blue)] text-white">
+          <h1 className="text-4xl pb-8">About Us</h1>
           <div className="grid grid-cols-2 gap-4">
             <div className="md:col-span-1 col-span-2 ">
               <Image
                 className="object-cover rounded-2xl"
                 src={"/community-dua.jpg"}
                 alt="About us"
-                height={626}
-                width={626}
-                // style={aboutUsImageStyle}
+                height={700}
+                width={700}
               />
             </div>
             <div className="md:col-span-1 col-span-2">
@@ -80,16 +79,26 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <section className="mt-5">
-        <div className="container mx-4">
+      <section>
+        <div className="border-t-4 w-full p-6">
           <h1 className="text-4xl">Current and upcoming events</h1>
-          <div className="flex overflow-x-scroll">
-            {currentEvents?.map((upcomingEvent) => (
-              <div key={upcomingEvent.id} className="mx-2">
-                <EventPill upcomingEvent={upcomingEvent}></EventPill>
+          {currentEvents.length ? (
+            <div className="flex overflow-x-scroll py-10">
+              {currentEvents?.map((upcomingEvent) => (
+                <div key={upcomingEvent.id} className="mx-2">
+                  <EventPill upcomingEvent={upcomingEvent}></EventPill>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center py-10">
+              <div className="bg-amber-300 p-10 border-t-slate-400 rounded-2xl">
+                <h2 className="text-2xl">
+                  There are no upcoming events at this time, but stay tuned!
+                </h2>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

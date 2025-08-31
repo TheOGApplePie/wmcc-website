@@ -1,6 +1,6 @@
 "use client";
 import { Slide } from "../app/page";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 interface SlideshowProps {
   content: Slide[];
@@ -13,7 +13,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
 
   // Filter out slides without valid poster URLs
   const validSlides = content.filter(
-    (slide) => slide.posterurl && slide.posterurl.trim() !== ""
+    (slide) => slide.posterurl && slide.posterurl.trim() !== "",
   );
 
   const nextSlide = () => {
@@ -32,7 +32,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
     setDirection("left");
     setTimeout(() => {
       setCurrentSlide(
-        (prev) => (prev - 1 + validSlides.length) % validSlides.length
+        (prev) => (prev - 1 + validSlides.length) % validSlides.length,
       );
       setIsTransitioning(false);
     }, 100);
@@ -48,17 +48,17 @@ export default function CarouselComponent({ content }: SlideshowProps) {
         setIsTransitioning(false);
       }, 100);
     },
-    [isTransitioning, currentSlide]
+    [isTransitioning, currentSlide],
   );
 
   // Auto-advance slides
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     nextSlide();
-  //   }, 5000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000);
 
-  //   return () => clearInterval(interval);
-  // }, [nextSlide]);
+    return () => clearInterval(interval);
+  }, [nextSlide]);
 
   return !content || content.length === 0 ? (
     <div className="h-56 sm:h-64 xl:h-80 2xl:h-96 bg-gray-200 flex items-center justify-center">
@@ -78,8 +78,8 @@ export default function CarouselComponent({ content }: SlideshowProps) {
             index === currentSlide
               ? "opacity-100 transform translate-x-0"
               : index < currentSlide
-              ? "opacity-0 transform -translate-x-full"
-              : "opacity-0 transform translate-x-full"
+                ? "opacity-0 transform -translate-x-full"
+                : "opacity-0 transform translate-x-full"
           }`}
         >
           {/* Caption - Left side, centered */}
@@ -91,7 +91,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
             </div>
             {slide.registrationlink && slide.buttoncaption && (
               <a href={slide.registrationlink} className="inline-block">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
+                <button className="bg-[var(--main-colour-blue)] hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
                   {slide.buttoncaption}
                 </button>
               </a>
@@ -99,7 +99,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
           </div>
 
           {/* Image - Right side, centered */}
-          <div className="col-span-1 flex items-center justify-center p-8">
+          <div className="col-span-1 flex flex-col sm:flex-row items-center justify-center p-8">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
                 src={slide.posterurl}
@@ -111,6 +111,16 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                 }}
               />
             </div>
+            {slide.registrationlink && slide.buttoncaption && (
+              <a
+                href={slide.registrationlink}
+                className="inline-block sm:hidden"
+              >
+                <button className="bg-[var(--main-colour-blue)] hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
+                  {slide.buttoncaption}
+                </button>
+              </a>
+            )}
           </div>
         </div>
       ))}

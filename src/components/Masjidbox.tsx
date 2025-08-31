@@ -12,7 +12,7 @@ export default function MasjidboxWidget() {
   }, []);
 
   return (
-    <div className="mt-4">
+    <div>
       <a
         data-masjidbox-widget="6sWyjAptQu-_pEdxsZrtL"
         data-masjidbox-ifr
