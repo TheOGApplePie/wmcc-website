@@ -1,0 +1,43 @@
+import ContactForm from "../../components/contactForm";
+export default function Contact() {
+  const apiKey = process.env.MAPS_API;
+
+  const googleMapsURL =
+    "https://www.google.com/maps/embed/v1/place?key=" +
+    apiKey +
+    "&q=20+Innovation+Dr,+Hamilton,+ON+L9H+7P3,+Canada";
+  return (
+    <div className="p-10">
+      <h1 className="text-4xl">Contact Us</h1>
+      <div className="border border-black rounded-2xl my-3 grid grid-cols-1 sm:grid-cols-2 justify-center items-center">
+        <div className="p-5 col-span-1 text-xl">
+          <h4 className="text-center">
+            If you have any questions, or just want to get in touch, feel free
+            to fill out the form and we will get back to you as soon as
+            possible.
+          </h4>
+          <div className="my-4">
+            <span className="flex items-center">
+              <img
+                className="inline"
+                height="30"
+                width="30"
+                src="location-dot.svg"
+                alt="location icon"
+              />
+              20 Innovation Dr, Dundas, ON L9H 7P3
+            </span>
+            {!apiKey ? (
+              <div>Loading...</div>
+            ) : (
+              <iframe className="w-full" src={googleMapsURL}></iframe>
+            )}
+          </div>
+        </div>
+        <div className="p-5 rounded-r-2xl col-span-1 bg-[#1E3A5F]">
+          <ContactForm />
+        </div>
+      </div>
+    </div>
+  );
+}

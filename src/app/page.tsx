@@ -92,8 +92,14 @@ export default async function Home() {
             </div>
           ) : (
             <div className="flex justify-center py-10">
-              <div className="bg-amber-300 p-10 border-t-slate-400 rounded-2xl">
-                <h2 className="text-2xl">
+              <div className="bg-[var(--warning-colour)] flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
+                <img
+                  src="wmcc-black.png"
+                  alt="wmcc white logo"
+                  height="80"
+                  width="80"
+                />
+                <h2 className="text-2xl px-5">
                   There are no upcoming events at this time, but stay tuned!
                 </h2>
               </div>

@@ -16,6 +16,7 @@
     "@fullcalendar/react": "^6.1.18",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.54.0",
+    "dayjs": "^1.11.18",
     "next": "15.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",

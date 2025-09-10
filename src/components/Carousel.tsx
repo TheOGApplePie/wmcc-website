@@ -69,7 +69,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
       <p className="text-gray-500">No valid slides to display</p>
     </div>
   ) : (
-    <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] via-37% to-[#1e3a5f]">
+    <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f]">
       {/* Slides */}
       {validSlides.map((slide, index) => (
         <div
@@ -159,11 +159,6 @@ export default function CarouselComponent({ content }: SlideshowProps) {
           />
         ))}
       </div>
-
-      {/* Transition overlay */}
-      {isTransitioning && (
-        <div className="absolute inset-0 bg-black bg-opacity-20 pointer-events-none" />
-      )}
     </div>
   );
 }

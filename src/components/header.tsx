@@ -1,10 +1,14 @@
 "use client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DropdownHeader from "./dropdownHeader";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [windowSize, setWindowSize] = useState({ width: 120, height: 1980 });
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
   const headerLinks = [
     {
@@ -28,12 +32,39 @@ export default function Header() {
       title: "WIS (Waterdown Islamic School)",
     },
   ];
+  const handleScroll = () => {
+    const position = window.pageYOffset;
+    setScrollPosition(position);
+  };
+  const handleResize = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    setWindowSize({ width, height });
+  };
+
+  useEffect(() => {
+    setWindowSize({ width: window.innerHeight, height: window.innerHeight });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
-    <header className="flex justify-between">
+    <header
+      className={
+        (scrollPosition <= windowSize.height - 120 && pathname === "/"
+          ? "background-gradient"
+          : "bg-main-colour-blue") + " flex justify-between px-6 py-2"
+      }
+    >
       <div>
-        <img src="wmcc.svg" alt="" />
+        <img src="wmcc-white.png" alt="WMCC logo" />
       </div>
-      <div className="py-2 px-4 hidden md:flex flex-1 justify-end items-center">
+      <div className="hidden md:flex flex-1 justify-end items-center">
         {headerLinks.map((link) => (
           <a
             className="px-3 text-xl text-white text-decoration-none"
@@ -43,13 +74,13 @@ export default function Header() {
             {link.title}
           </a>
         ))}
-        <button className="border-0 text-xl p-3 rounded-sm text-white">
+        <button className="border-0 sm:rounded text-xl p-3 text-white">
           Donate
         </button>
       </div>
-      <div className="flex md:hidden items-center py-2 px-4">
+      <div className="flex md:hidden items-center">
         <button
-          className="border-0 text-xl p-3 rounded-sm text-white"
+          className="border-0 text-xl p-3 sm:rounded text-white"
           onClick={() => setShowDropdownMenu(!showDropdownMenu)}
         >
           <FontAwesomeIcon icon={faBars} />

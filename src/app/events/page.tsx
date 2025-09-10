@@ -1,15 +1,30 @@
-"use client";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
+import Calendar from "../../components/calendar";
+import { createClient } from "../../utils/supabase/server";
+import dayjs from "dayjs";
 
-export default function Events() {
+export default async function Events() {
+  const supabase = await createClient();
+  const startOfMonth = dayjs().startOf("month");
+  const endOfMonth = dayjs().endOf("month");
+  const { data: currentEvents } = await supabase
+    .from("events")
+    .select(
+      "id, posterurl,posteralt,title,startdate, location, enddate, caption",
+    )
+    .gte("startdate", startOfMonth.toISOString())
+    .lte("startdate", endOfMonth.toISOString());
+  const events = currentEvents.map((event) => {
+    return {
+      ...event,
+      start: event.startdate,
+      end: event.enddate,
+    };
+  });
   return (
-    <div className="container">
-      <FullCalendar
-        plugins={[dayGridPlugin]}
-        initialView="dayGridMonth"
-        headerToolbar={{ right: "dayGridMonth,dayGridWeek,dayGridDay" }}
-      />
+    <div className="p-4 mx-auto container">
+      <div className="justify-center">
+        <Calendar initialEvents={events}></Calendar>
+      </div>
     </div>
   );
 }
