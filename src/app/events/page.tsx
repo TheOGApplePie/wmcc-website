@@ -21,10 +21,8 @@ export default async function Events() {
     };
   });
   return (
-    <div className="p-4 mx-auto container">
-      <div className="justify-center">
-        <Calendar initialEvents={events}></Calendar>
-      </div>
+    <div className="p-4 mx-auto">
+      <Calendar initialEvents={events}></Calendar>
     </div>
   );
 }

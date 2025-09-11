@@ -4,6 +4,7 @@ import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import DropdownHeader from "./dropdownHeader";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Header() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export default function Header() {
     },
     {
       link: "events",
-      title: "Programs & Services",
+      title: "Events",
     },
     {
       link: "about",
@@ -54,39 +55,47 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      className={
-        (scrollPosition <= windowSize.height - 120 && pathname === "/"
-          ? "background-gradient"
-          : "bg-main-colour-blue") + " flex justify-between px-6 py-2"
-      }
-    >
-      <div>
-        <img src="wmcc-white.png" alt="WMCC logo" />
-      </div>
-      <div className="hidden md:flex flex-1 justify-end items-center">
-        {headerLinks.map((link) => (
-          <a
-            className="px-3 text-xl text-white text-decoration-none"
-            key={`big-` + link.title}
-            href={link.link}
+    <>
+      <header
+        className={
+          (scrollPosition <= windowSize.height - 120 && pathname === "/"
+            ? "background-gradient"
+            : "bg-main-colour-blue shadow-[0px_0px_1rem_#000]") +
+          " flex justify-between px-6 py-2"
+        }
+      >
+        <div>
+          <Link href="/">
+            <img src="wmcc-white.png" alt="WMCC logo" />
+          </Link>
+        </div>
+        <div className="hidden md:flex flex-1 justify-end items-center">
+          {headerLinks.map((link) => (
+            <a
+              className="px-3 text-xl text-white text-decoration-none"
+              key={`big-` + link.title}
+              href={link.link}
+            >
+              {link.title}
+            </a>
+          ))}
+          <button className="border-0 sm:rounded text-xl p-3 text-white">
+            Donate
+          </button>
+        </div>
+        <div className="flex md:hidden items-center">
+          <button
+            className="text-xl p-3 rounded text-white"
+            onClick={() => setShowDropdownMenu(!showDropdownMenu)}
           >
-            {link.title}
-          </a>
-        ))}
-        <button className="border-0 sm:rounded text-xl p-3 text-white">
-          Donate
-        </button>
-      </div>
-      <div className="flex md:hidden items-center">
-        <button
-          className="border-0 text-xl p-3 sm:rounded text-white"
-          onClick={() => setShowDropdownMenu(!showDropdownMenu)}
-        >
-          <FontAwesomeIcon icon={faBars} />
-        </button>
-      </div>
-      <DropdownHeader links={headerLinks} showDropdownMenu={showDropdownMenu} />
-    </header>
+            <FontAwesomeIcon icon={faBars} />
+          </button>
+        </div>
+        <DropdownHeader
+          links={headerLinks}
+          showDropdownMenu={showDropdownMenu}
+        />
+      </header>
+    </>
   );
 }
