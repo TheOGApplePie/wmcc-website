@@ -80,7 +80,9 @@ export default function Header() {
             </a>
           ))}
           <button className="border-0 sm:rounded text-xl p-3 text-white">
-            Donate
+            <a key="big-donate" href="donate">
+              Donate
+            </a>
           </button>
         </div>
         <div className="flex md:hidden items-center">

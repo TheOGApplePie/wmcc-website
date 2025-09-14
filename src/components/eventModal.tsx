@@ -14,18 +14,8 @@ export default function EventModal({
   const startDate = dayjs(event.extendedProps.startdate).format(
     "dddd, MMMM D, YYYY h:mm A",
   );
-  const calendar = document.getElementsByClassName("fc");
-  const calendarWidth = calendar.item(0).clientWidth;
   return (
-    <div
-      className={
-        (eventPosition.x <
-        window.innerWidth - calendarWidth + (calendarWidth / 7) * 3
-          ? "right-0"
-          : "left-0") +
-        " p-4 sm:mx-3 fixed z-50 sm:w-1/2 border shadow-md rounded-md bg-white"
-      }
-    >
+    <div className="p-4 sm:mx-auto left-1/4 fixed z-50 sm:w-1/2 border shadow-md rounded-md bg-white">
       <div className="pb-4 text-center">
         <button className="float-start text-2xl" onClick={closeModal}>
           <FontAwesomeIcon icon={faClose} />

@@ -9,27 +9,24 @@ interface SlideshowProps {
 export default function CarouselComponent({ content }: SlideshowProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [direction, setDirection] = useState<"left" | "right">("right");
 
   // Filter out slides without valid poster URLs
   const validSlides = content.filter(
     (slide) => slide.posterurl && slide.posterurl.trim() !== "",
   );
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setDirection("right");
     setTimeout(() => {
       setCurrentSlide((prev) => (prev + 1) % validSlides.length);
       setIsTransitioning(false);
     }, 100);
-  };
+  }, [isTransitioning, validSlides.length]);
 
   const prevSlide = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setDirection("left");
     setTimeout(() => {
       setCurrentSlide(
         (prev) => (prev - 1 + validSlides.length) % validSlides.length,
@@ -42,7 +39,6 @@ export default function CarouselComponent({ content }: SlideshowProps) {
     (index: number) => {
       if (isTransitioning || index === currentSlide) return;
       setIsTransitioning(true);
-      setDirection("right");
       setTimeout(() => {
         setCurrentSlide(index);
         setIsTransitioning(false);

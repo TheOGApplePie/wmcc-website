@@ -2,7 +2,7 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { EventClickArg } from "@fullcalendar/core/index.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
 
@@ -12,6 +12,34 @@ export default function Calendar({ initialEvents }) {
   const [eventLocation, setEventLocation] = useState({ x: 0, y: 0 });
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
+  const [toolbarHeader, setToolbarHeader] = useState({
+    start: "prev,next",
+    center: "title",
+    end: "dayGridMonth,dayGridWeek",
+  });
+  const handleResize = () => {
+    if (window.innerWidth > 500) {
+      setToolbarHeader({
+        start: "prev,next",
+        center: "title",
+        end: "dayGridMonth,dayGridWeek",
+      });
+    } else {
+      setToolbarHeader({
+        start: "title",
+        center: "",
+        end: "prev,next",
+      });
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize, { passive: true });
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   function handleEventClick(event: EventClickArg) {
     setEventLocation({ x: event.jsEvent.clientX, y: event.jsEvent.clientY });
     setEvent(event.event);
@@ -51,11 +79,8 @@ export default function Calendar({ initialEvents }) {
           setCalendarLoading(loading);
         }}
         initialView="dayGridMonth"
-        headerToolbar={{
-          right: "dayGridMonth,dayGridWeek",
-          left: "prev,next",
-          center: "title",
-        }}
+        headerToolbar={toolbarHeader}
+        height={"calc(100dvh - 100px)"}
         eventSources={[events]}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}

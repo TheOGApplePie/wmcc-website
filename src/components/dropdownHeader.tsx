@@ -18,11 +18,15 @@ export default function DropdownHeader({
           key={`dropdown-` + link.title}
           className="p-2 border-t border-t-black"
         >
-          <a href={link.link}>{link.title}</a>
+          <a className="w-full" href={link.link}>
+            {link.title}
+          </a>
         </li>
       ))}
       <li key="donate" className="p-3 text-center bg-secondary-colour-green">
-        <a href="#">Donate</a>
+        <a key="dropdown-donate" href="donate">
+          Donate
+        </a>
       </li>
     </ul>
   );

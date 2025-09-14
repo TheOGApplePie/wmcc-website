@@ -14,30 +14,30 @@ export default function ContactForm() {
     );
   }
   return (
-    <form className="p-4 mb-3 bg-light" action={handleFormSubmit}>
+    <form className="sm:p-4 mb-3 bg-light text-xl" action={handleFormSubmit}>
       <input
-        className="w-full h-10 border border-zinc-500 rounded text-base p-2"
+        className="w-full h-12 rounded p-2"
         required
         type="text"
         name="name"
         placeholder="Name"
       />
       <input
-        className="w-6/12 h-10 border border-zinc-500 rounded my-5 text-base p-2"
+        className="w-full h-12 rounded mt-5 p-2"
         required
         type="email"
         name="email"
         placeholder="Email"
       />
       <input
-        className="w-6/12 h-10 border border-zinc-500 rounded my-5 text-base p-2"
+        className="w-full h-12 rounded my-5 p-2"
         type="tel"
         name="telephone"
         placeholder="Phone Number"
       />
 
       <textarea
-        className="resize-none w-full border border-black rounded text-base p-2"
+        className="resize-none w-full rounded p-2"
         required
         name="message"
         rows={4}
@@ -46,7 +46,7 @@ export default function ContactForm() {
 
       <div className="text-center mt-5">
         <button
-          className="border-0 text-xl p-3 sm:rounded text-white bg-[var(--secondary-colour-green)]"
+          className="border-0 text-xl p-3 rounded text-white bg-[var(--secondary-colour-green)]"
           type="submit"
         >
           Submit

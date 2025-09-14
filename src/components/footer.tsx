@@ -3,39 +3,33 @@ import Image from "next/image";
 export default function Footer() {
   const footerLinks = [
     {
-      link: "#",
+      link: "/",
       title: "Home",
     },
     {
-      link: "#",
-      title: "Programs & Services",
+      link: "/events",
+      title: "Events",
     },
     {
-      link: "#",
-      title: "About",
+      link: "/about",
+      title: "About WMCC",
     },
     {
-      link: "#",
+      link: "/contact",
       title: "Contact",
     },
   ];
   return (
-    <footer className="px-3 bg-gray-900 flex flex-col md:flex-row md:justify-between items-center">
-      <div className="py-3">
-        <p className="text-white text-xl">
-          Waterdown Muslim Community Center (WMCC)
-        </p>
-        <p className="text-white text-xl">
-          All donations are tax deductible. Charity # 75639 4409 RR0001
-        </p>
-        <p className="text-white text-xl">
-          © Copyright WMCC - All Rights Reserved
-        </p>
+    <footer className="p-3 bg-gray-900 flex flex-col md:flex-row md:justify-between items-center">
+      <div className="py-3 text-sm sm:text-base text-white">
+        <p>Waterdown Muslim Community Center (WMCC)</p>
+        <p>All donations are tax deductible. Charity # 75639 4409 RR0001</p>
+        <p>© Copyright WMCC - All Rights Reserved</p>
       </div>
       <div className="flex flex-wrap py-3">
         {footerLinks.map((link) => (
           <a
-            className="px-4 py-2 text-white text-xl"
+            className="px-4 py-2 text-white text-sm sm:text-base"
             key={link.title}
             href={link.link}
           >
