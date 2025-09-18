@@ -26,18 +26,14 @@ export default function About() {
       <section className="p-4">
         <h2 className="p-4 text-4xl text-center">Who are the WMCC?</h2>
         <p className="text-xl">
-          We are the WMCC! We are your friendly neighbourhood muslim community.
-          The Waterdown Muslim Community Centre is a community built on a strong
-          islamic foundation with an aim to serve the Waterdown and surrounding
-          neighbourhood families with a holistic collaborative, non-sectarian
-          and maximum inclusion spirit.
-        </p>
-        <p className="text-xl">
-          Our main focus is charitable, educational, welfare and spiritual
-          support for youth, seniors, women and everyone in Waterdown Muslim
-          community looking to empower the community through advancement of
-          religion, social engagement, reduction of misconception and
-          advancement of education at a professional level.
+          We are the WMCC! Rooted in strong Islamic values, the Waterdown Muslim
+          Community Centre is here to welcome and support families in Waterdown
+          and the surrounding neighbourhoods. We strive to serve with compassion
+          and inclusivity — offering charitable, educational, spiritual, and
+          social programs for youth, seniors, women, and men. At WMCC, we live
+          and teach Islam holistically — nurturing faith, building community,
+          clearing misconceptions, and inspiring growth through learning and
+          connection.
         </p>
       </section>
       <section>

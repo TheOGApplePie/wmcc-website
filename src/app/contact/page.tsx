@@ -7,9 +7,9 @@ export default function Contact() {
     apiKey +
     "&q=20+Innovation+Dr,+Hamilton,+ON+L9H+7P3,+Canada";
   return (
-    <div className="p-10">
+    <div className="p-4 sm:p-10">
       <h1 className="text-4xl">Contact Us</h1>
-      <div className="border border-black rounded-2xl my-3 grid grid-cols-1 sm:grid-cols-2 justify-center items-center">
+      <div className="border border-black rounded-lg my-3 grid grid-cols-1 sm:grid-cols-2 justify-center items-center">
         <div className="p-5 col-span-1 text-xl">
           <h4>
             If you have any questions, or just want to get in touch, feel free
@@ -34,7 +34,7 @@ export default function Contact() {
             )}
           </div>
         </div>
-        <div className="p-5 rounded-r-2xl col-span-1 bg-[#1E3A5F]">
+        <div className="p-5 h-full rounded-b-lg rounded-r-none sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
           <ContactForm />
         </div>
       </div>
