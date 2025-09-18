@@ -1,16 +1,33 @@
-import { NextRequest } from "next/server";
-import * as stripe from "stripe";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-export async function POST(req: NextRequest) {
+const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SERVER_KEY);
+
+export async function POST(request) {
   try {
-    // Create a PaymentIntent with the order amount and currency
+    const {
+      amount,
+      currency = "cad",
+      isRecurring,
+      customerInfo,
+    } = await request.json();
+
+    // Create a PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 20,
-      currency: "cad",
-      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-      automatic_payment_methods: {
-        enabled: false,
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: currency,
+      metadata: {
+        customer_name: customerInfo?.fullname || "",
+        customer_email: customerInfo?.email || "",
+        is_recurring: isRecurring ? "true" : "false",
       },
     });
-  } catch (error) {}
+
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (err) {
+    console.error("Error creating payment intent:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

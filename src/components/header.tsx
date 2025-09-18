@@ -55,47 +55,44 @@ export default function Header() {
   }, []);
 
   return (
-    <>
-      <header
-        className={
-          (scrollPosition <= windowSize.height - 120 && pathname === "/"
-            ? "background-gradient"
-            : "bg-main-colour-blue shadow-[0px_0px_1rem_#000]") +
-          " flex justify-between px-6 py-2"
-        }
-      >
-        <div>
-          <Link href="/">
-            <img src="wmcc-white.png" alt="WMCC logo" />
-          </Link>
-        </div>
-        <div className="hidden md:flex flex-1 justify-end items-center">
-          {headerLinks.map((link) => (
-            <a
-              className="px-3 text-xl text-white text-decoration-none"
-              key={`big-` + link.title}
-              href={link.link}
-            >
-              {link.title}
-            </a>
-          ))}
+    <header
+      className={
+        (scrollPosition <= windowSize.height - 120 && pathname === "/"
+          ? "background-gradient"
+          : "bg-main-colour-blue shadow-[0px_0px_1rem_#000]") +
+        " flex justify-between px-6 py-2"
+      }
+    >
+      <div>
+        <Link href="/">
+          <img src="wmcc-white.png" alt="WMCC logo" />
+        </Link>
+      </div>
+      <div className="hidden md:flex flex-1 justify-end items-center">
+        {headerLinks.map((link) => (
+          <a
+            className="px-3 text-xl text-white"
+            key={`big-` + link.title}
+            href={link.link}
+          >
+            {link.title}
+          </a>
+        ))}
+        <a className="px-3 text-xl text-white" key="big-donate" href="donate">
           <button className="border-0 sm:rounded text-xl p-3 text-white">
             Donate
           </button>
-        </div>
-        <div className="flex md:hidden items-center">
-          <button
-            className="text-xl p-3 rounded text-white"
-            onClick={() => setShowDropdownMenu(!showDropdownMenu)}
-          >
-            <FontAwesomeIcon icon={faBars} />
-          </button>
-        </div>
-        <DropdownHeader
-          links={headerLinks}
-          showDropdownMenu={showDropdownMenu}
-        />
-      </header>
-    </>
+        </a>
+      </div>
+      <div className="flex md:hidden items-center">
+        <button
+          className="text-xl p-3 rounded text-white bg-[var(--secondary-colour-green)]"
+          onClick={() => setShowDropdownMenu(!showDropdownMenu)}
+        >
+          <FontAwesomeIcon icon={faBars} />
+        </button>
+      </div>
+      <DropdownHeader links={headerLinks} showDropdownMenu={showDropdownMenu} />
+    </header>
   );
 }

@@ -3,136 +3,177 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
-    --main-colour-blue: #1e3a5f;
-    --secondary-colour-green: #026c54;
-    --accent-colour-white: #f5f0f6;
-    --warning-colour: #fbbf24;
+  --background: #ffffff;
+  --foreground: #171717;
+  --main-colour-blue: #1e3a5f;
+  --secondary-colour-green: #026c54;
+  --cancel-error-colour: #df2c1f;
+  --warning-colour: #fbbf24;
 }
 
 header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    color: var(--accent-colour-white);
-    transition: box-shadow 0.2s ease-out;
-    img {
-        height: 100px;
-    }
-    button {
-        background-color: var(--secondary-colour-green);
-    }
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  color: var(--accent-colour-white);
+  transition: box-shadow 0.2s ease-out;
+  img {
+    height: 100px;
+  }
+}
+.gratitude-image {
+  width: 75px;
+  height: min-content;
+  animation: showGratitude 3s ease-out infinite;
 }
 
+@keyframes showGratitude {
+  0% {
+    opacity: 1;
+    transform: translateY(100%);
+  }
+  20% {
+    transform: translateY(0);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.alert-flashing {
+  width: 75px;
+  height: min-content;
+  animation: flashing 1s infinite alternate;
+}
+
+@keyframes flashing {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .bg-secondary-colour-green {
-    background-color: var(--secondary-colour-green);
+  background-color: var(--secondary-colour-green);
 }
 
 .bg-main-colour-blue {
-    background-color: var(--main-colour-blue);
+  background-color: var(--main-colour-blue);
 }
 
 .background-gradient {
-    background: linear-gradient(to right, #08101a, #1e3a5f);
+  background: linear-gradient(to right, #08101a, #1e3a5f);
 }
 
 .carousel {
-    max-height: 90dvh;
+  max-height: 90dvh;
 }
 
 @media screen and (min-width: 992px) {
-    .community-image {
-        background-image:
-            linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 25%,
-                rgba(255, 255, 255, 1) 50%
-            ),
-            url("/community-dua.jpg");
-        background-repeat: no-repeat;
-        background-size: contain;
-        border-radius: 10px;
-    }
+  .community-image {
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 25%,
+        rgba(255, 255, 255, 1) 50%
+      ),
+      url("/community-dua.jpg");
+    background-repeat: no-repeat;
+    background-size: contain;
+    border-radius: 10px;
+  }
 }
 
 .event-pill {
-    width: 450px;
+  width: 450px;
 }
 
 .loader {
+  text-align: center;
+  font-weight: 700;
+  span {
+    width: 100px;
+    font-size: 80px;
+  }
+  span:nth-child(1) {
+    text-anchor: middle;
     text-align: center;
-    font-weight: 700;
-    span {
-        width: 100px;
-        font-size: 80px;
-    }
-    span:nth-child(1) {
-        text-anchor: middle;
-        text-align: center;
-        animation: animloader 1.5s ease-out infinite;
-        animation-delay: 0s;
-    }
-    span:nth-child(2) {
-        animation: animloader 1.5s ease-out infinite;
-        animation-delay: 200ms;
-    }
-    span:nth-child(3) {
-        animation: animloader 1.5s ease-out infinite;
-        animation-delay: 400ms;
-    }
-    span:nth-child(4) {
-        animation: animloader 1.5s ease-out infinite;
-        animation-delay: 600ms;
-    }
+    animation: animloader 1.5s ease-out infinite;
+    animation-delay: 0s;
+  }
+  span:nth-child(2) {
+    animation: animloader 1.5s ease-out infinite;
+    animation-delay: 200ms;
+  }
+  span:nth-child(3) {
+    animation: animloader 1.5s ease-out infinite;
+    animation-delay: 400ms;
+  }
+  span:nth-child(4) {
+    animation: animloader 1.5s ease-out infinite;
+    animation-delay: 600ms;
+  }
 }
 
 @keyframes animloader {
-    0% {
-        transform: scale(1);
-    }
-    20% {
-        transform: scale(1.75);
-    }
-    40% {
-        transform: scale(1);
-    }
-    100% {
-        transform: scale(1);
-    }
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.75);
+  }
+  40% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .bg-collage {
-    position: relative;
-    background: none;
+  position: relative;
+  background: none;
 }
 .bg-collage::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url("/mosque-collage.jpg") center/cover no-repeat;
-    clip-path: polygon(0 0, 0 100%, 40% 100%, 60% 0);
-    box-shadow: inset 0 0 0 1400px rgba(30, 58, 95, 0.85);
-    z-index: -1;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/mosque-collage.jpg") center/cover no-repeat;
+  clip-path: polygon(0 0, 0 100%, 40% 100%, 60% 0);
+  box-shadow: inset 0 0 0 1400px rgba(30, 58, 95, 0.85);
+  z-index: -1;
 }
 @media screen and (max-width: 639px) {
-    .bg-collage::before {
-        clip-path: none;
-    }
+  .bg-collage::before {
+    clip-path: none;
+  }
 }
 
 label {
-    width: 100%;
-    height: 100%;
-    border-radius: 1rem;
-    text-align: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  text-align: center;
 }
 label:hover {
-    cursor: pointer;
+  cursor: pointer;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }

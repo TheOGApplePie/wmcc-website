@@ -11,7 +11,7 @@ export default function Contact() {
       <h1 className="text-4xl">Contact Us</h1>
       <div className="border border-black rounded-2xl my-3 grid grid-cols-1 sm:grid-cols-2 justify-center items-center">
         <div className="p-5 col-span-1 text-xl">
-          <h4 className="text-center">
+          <h4>
             If you have any questions, or just want to get in touch, feel free
             to fill out the form and we will get back to you as soon as
             possible.
