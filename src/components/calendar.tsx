@@ -49,7 +49,7 @@ export default function Calendar({ initialEvents }) {
     const { start, end } = args;
     setCalendarLoading(true);
     const data = await fetch(
-      `/api/events/fetchEvents?start=${start.toISOString()}&end=${end.toISOString()}`,
+      `/api/events/?start=${start.toISOString()}&end=${end.toISOString()}`
     );
     const { currentEvents } = await data.json();
     const mappedEvents = currentEvents.map((event) => {
