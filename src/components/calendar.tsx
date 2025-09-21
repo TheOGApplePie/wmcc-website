@@ -1,14 +1,16 @@
 "use client";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import listPlugin from "@fullcalendar/list";
 import { EventClickArg } from "@fullcalendar/core/index.js";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
 
-export default function Calendar({ initialEvents }) {
+export default function Calendar() {
   const [event, setEvent] = useState(null);
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState([]);
+  const calendarRef = useRef(null);
   const [eventLocation, setEventLocation] = useState({ x: 0, y: 0 });
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
@@ -18,18 +20,26 @@ export default function Calendar({ initialEvents }) {
     end: "dayGridMonth,dayGridWeek",
   });
   const handleResize = () => {
+    const calendarApi = calendarRef.current.getApi();
     if (window.innerWidth > 500) {
       setToolbarHeader({
         start: "prev,next",
         center: "title",
         end: "dayGridMonth,dayGridWeek",
       });
+      console.log(calendarApi.view.type !== "dayGridMonth");
+      if (calendarApi.view.type !== "dayGridMonth") {
+        calendarApi.changeView("dayGridMonth");
+      }
     } else {
       setToolbarHeader({
         start: "title",
         center: "",
         end: "prev,next",
       });
+      if (calendarApi.view.type !== "listMonth") {
+        calendarApi.changeView("listMonth");
+      }
     }
   };
 
@@ -49,7 +59,7 @@ export default function Calendar({ initialEvents }) {
     const { start, end } = args;
     setCalendarLoading(true);
     const data = await fetch(
-      `/api/events/fetchEvents?start=${start.toISOString()}&end=${end.toISOString()}`,
+      `/api/events?start=${start.toISOString()}&end=${end.toISOString()}`
     );
     const { currentEvents } = await data.json();
     const mappedEvents = currentEvents.map((event) => {
@@ -74,7 +84,8 @@ export default function Calendar({ initialEvents }) {
       ></EventModal>
 
       <FullCalendar
-        plugins={[dayGridPlugin]}
+        ref={calendarRef}
+        plugins={[dayGridPlugin, listPlugin]}
         loading={(loading) => {
           setCalendarLoading(loading);
         }}

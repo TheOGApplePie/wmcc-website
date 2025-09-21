@@ -80,9 +80,7 @@ export default function Header() {
         ))}
         <a className="px-3 text-xl text-white" key="big-donate" href="donate">
           <button className="border-0 sm:rounded text-xl p-3 text-white">
-            <a key="big-donate" href="donate">
-              Donate
-            </a>
+            Donate
           </button>
         </a>
       </div>
