@@ -151,14 +151,14 @@ export default function ContactForm() {
           )}
           {errors.message && errors.message.type === "maxLength" && (
             <span className="text-red-600">
-              Your message seems to be too long, perhaps you'd like to visit us
-              at our centre for a more fruitful discussion.
+              Your message seems to be too long, perhaps you&apos;d like to
+              visit us at our centre for a more fruitful discussion.
             </span>
           )}
           {errors.message && errors.message.type === "minLength" && (
             <span className="text-red-600">
-              Your message doesn't seem to be long enough. Please provide us
-              with some more detail.
+              Your message doesn&apos;t seem to be long enough. Please provide
+              us with some more detail.
             </span>
           )}
         </label>
