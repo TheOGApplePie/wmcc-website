@@ -30,11 +30,15 @@ export default function Contact() {
             {!apiKey ? (
               <div>Loading...</div>
             ) : (
-              <iframe className="w-full" src={googleMapsURL}></iframe>
+              <iframe
+                title="googlemaps"
+                className="w-full"
+                src={googleMapsURL}
+              ></iframe>
             )}
           </div>
         </div>
-        <div className="p-5 h-full rounded-b-lg rounded-r-none sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
+        <div className="p-5 h-full rounded-b-lg sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
           <ContactForm />
         </div>
       </div>

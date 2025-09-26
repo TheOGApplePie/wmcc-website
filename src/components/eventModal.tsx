@@ -2,17 +2,12 @@ import { faClose } from "@fortawesome/free-solid-svg-icons/faClose";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dayjs from "dayjs";
 
-export default function EventModal({
-  event,
-  modalIsOpen,
-  closeModal,
-  eventPosition,
-}) {
+export default function EventModal({ event, modalIsOpen, closeModal }) {
   if (!modalIsOpen) {
     return null;
   }
   const startDate = dayjs(event.extendedProps.startdate).format(
-    "dddd, MMMM D, YYYY h:mm A",
+    "dddd, MMMM D, YYYY h:mm A"
   );
   return (
     <div className="p-4 sm:mx-auto left-1/4 fixed z-50 sm:w-1/2 border shadow-md rounded-md bg-white">

@@ -19,6 +19,7 @@ export interface UpcomingEvent {
   title: string;
   startdate: string;
   location: string;
+  registrationlink: string;
 }
 export default async function Home() {
   const supabase = await createClient();
@@ -29,7 +30,9 @@ export default async function Home() {
 
   const { data: currentEvents } = await supabase
     .from("events")
-    .select("id, posterurl,posteralt,title,startdate, location")
+    .select(
+      "id, posterurl,posteralt,title,startdate, location, registrationlink"
+    )
     .gte("startdate", new Date().toISOString())
     .order("startdate", { ascending: true });
 
@@ -44,7 +47,7 @@ export default async function Home() {
         <MasjidboxWidget />
       </section>
       <section>
-        <div className="border-t-4 p-8 bg-[var(--main-colour-blue)] text-white">
+        <div className="border-t-4 px-8 py-14 bg-[var(--main-colour-blue)] text-white">
           <h1 className="text-4xl pb-8">About Us</h1>
           <div className="grid grid-cols-2 gap-4">
             <div className="md:col-span-1 col-span-2 ">
@@ -80,10 +83,10 @@ export default async function Home() {
         </div>
       </section>
       <section>
-        <div className="border-t-4 w-full p-6">
+        <div className="border-t-4 w-full px-8 py-14 ">
           <h1 className="text-4xl">Current and upcoming events</h1>
           {currentEvents.length ? (
-            <div className="flex overflow-x-scroll py-10">
+            <div className="flex overflow-x-scroll py-10 mask-x-from-70% mask-x-to-90%">
               {currentEvents?.map((upcomingEvent) => (
                 <div key={upcomingEvent.id} className="mx-2">
                   <EventPill upcomingEvent={upcomingEvent}></EventPill>

@@ -1,15 +1,15 @@
 "use client";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import listPlugin from "@fullcalendar/list";
 import { EventClickArg } from "@fullcalendar/core/index.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
 
-export default function Calendar({ initialEvents }) {
+export default function Calendar() {
   const [event, setEvent] = useState(null);
-  const [events, setEvents] = useState(initialEvents);
-  const [eventLocation, setEventLocation] = useState({ x: 0, y: 0 });
+  const [events, setEvents] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [toolbarHeader, setToolbarHeader] = useState({
@@ -17,19 +17,31 @@ export default function Calendar({ initialEvents }) {
     center: "title",
     end: "dayGridMonth,dayGridWeek",
   });
+  const calendarRef = useRef(null);
   const handleResize = () => {
+    const calendarApi = calendarRef.current.getApi();
+    console.log(calendarApi.view.type === "listMonth");
     if (window.innerWidth > 500) {
       setToolbarHeader({
         start: "prev,next",
         center: "title",
         end: "dayGridMonth,dayGridWeek",
       });
+      if (
+        calendarApi.view.type !== "dayGridMonth" &&
+        calendarApi.view.type !== "dayGridWeek"
+      ) {
+        calendarApi.changeView("dayGridMonth");
+      }
     } else {
       setToolbarHeader({
         start: "title",
         center: "",
         end: "prev,next",
       });
+      if (calendarApi.view.type !== "listMonth") {
+        calendarApi.changeView("listMonth");
+      }
     }
   };
 
@@ -41,7 +53,6 @@ export default function Calendar({ initialEvents }) {
     };
   }, []);
   function handleEventClick(event: EventClickArg) {
-    setEventLocation({ x: event.jsEvent.clientX, y: event.jsEvent.clientY });
     setEvent(event.event);
     setModalIsOpen(true);
   }
@@ -70,11 +81,11 @@ export default function Calendar({ initialEvents }) {
         event={event}
         modalIsOpen={modalIsOpen}
         closeModal={() => setModalIsOpen(false)}
-        eventPosition={eventLocation}
       ></EventModal>
 
       <FullCalendar
-        plugins={[dayGridPlugin]}
+        ref={calendarRef}
+        plugins={[dayGridPlugin, listPlugin]}
         loading={(loading) => {
           setCalendarLoading(loading);
         }}
@@ -84,6 +95,7 @@ export default function Calendar({ initialEvents }) {
         eventSources={[events]}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}
+        windowResizeDelay={100}
       />
     </>
   );

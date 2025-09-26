@@ -4,11 +4,10 @@ import { createClient } from "../../../utils/supabase/server";
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const formData = await req.formData();
-    const data = Object.fromEntries(formData);
+    const formData = await req.json();
     const insertionResponse = await supabase
       .from("community-feedback")
-      .insert(data);
+      .insert(formData);
     return NextResponse.json(insertionResponse);
   } catch (error) {
     console.error(error);
