@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import Script from "next/script";
 
 export default function RootLayout({
   children,
@@ -9,14 +10,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <script
-          src="https://www.google.com/recaptcha/api.js"
-          async
-          defer
-        ></script>
-      </head>
+      <head />
       <body>
+        <Script src="https://www.google.com/recaptcha/api.js"></Script>
         <Header></Header>
         {children}
         <Footer></Footer>

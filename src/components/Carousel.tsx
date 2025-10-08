@@ -1,7 +1,8 @@
 "use client";
 import { Slide } from "../app/page";
 import { useState, useCallback, useEffect } from "react";
-
+import Image from "next/image";
+import Loading from "./loading";
 interface SlideshowProps {
   content: Slide[];
 }
@@ -97,9 +98,11 @@ export default function CarouselComponent({ content }: SlideshowProps) {
             {/* Image - Right side, centered */}
             <div className="col-span-1 flex flex-col sm:flex-row items-center justify-center p-8">
               <div className="relative w-full h-full flex items-center justify-center">
-                <img
+                <Image
                   src={slide.posterurl}
                   alt={slide.posteralt || `Slide ${index + 1}`}
+                  fill={true}
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full object-contain rounded-lg"
                   onError={(e) => {
                     console.error(`Failed to load image: ${slide.posterurl}`);

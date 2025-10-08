@@ -6,9 +6,10 @@ import { EventClickArg } from "@fullcalendar/core/index.js";
 import { useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 export default function Calendar() {
-  const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState<EventImpl | null>(null);
   const [events, setEvents] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
@@ -17,10 +18,12 @@ export default function Calendar() {
     center: "title",
     end: "dayGridMonth,dayGridWeek",
   });
-  const calendarRef = useRef(null);
+  const calendarRef = useRef<FullCalendar | null>(null);
   const handleResize = () => {
-    const calendarApi = calendarRef.current.getApi();
-    console.log(calendarApi.view.type === "listMonth");
+    const calendarApi = calendarRef.current?.getApi?.();
+    if (!calendarApi) {
+      return;
+    }
     if (window.innerWidth > 500) {
       setToolbarHeader({
         start: "prev,next",
@@ -63,13 +66,15 @@ export default function Calendar() {
       `/api/events/?start=${start.toISOString()}&end=${end.toISOString()}`
     );
     const { currentEvents } = await data.json();
-    const mappedEvents = currentEvents.map((event) => {
-      return {
-        ...event,
-        start: event.startdate,
-        end: event.enddate,
-      };
-    });
+    const mappedEvents = currentEvents.map(
+      (event: { startdate: Date; enddate: Date }) => {
+        return {
+          ...event,
+          start: event.startdate,
+          end: event.enddate,
+        };
+      }
+    );
     setEvents(mappedEvents);
     setCalendarLoading(false);
   }

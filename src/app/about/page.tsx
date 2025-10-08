@@ -1,3 +1,4 @@
+import Image from "next/image";
 export default function About() {
   const team = [
     { title: "Events Coordinator", name: "Br Taanzeel ur Rehman" },
@@ -52,7 +53,12 @@ export default function About() {
                 className="flex flex-col items-center text-center"
                 key={member.name}
               >
-                <img src="avatar.png" alt={member.name} />
+                <Image
+                  src="/avatar.png"
+                  alt={member.name}
+                  width={200}
+                  height={200}
+                />
                 <p className="text-base sm:text-xl">{member.title}</p>
                 <p className="text-lg sm:text-2xl">{member.name}</p>
               </div>
@@ -71,7 +77,12 @@ export default function About() {
                 className="flex flex-col items-center text-center"
                 key={member.name}
               >
-                <img src="avatar.png" alt={member.name} />
+                <Image
+                  src="/avatar.png"
+                  alt={member.name}
+                  width={200}
+                  height={200}
+                />
                 <p className="text-base sm:text-xl">{member.title}</p>
                 <p className="text-lg sm:text-2xl">{member.name}</p>
               </div>

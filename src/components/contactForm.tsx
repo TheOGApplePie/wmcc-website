@@ -1,6 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
+import { ResponseCodes } from "../app/enums/responseCodes";
+declare global {
+  interface Window {
+    handleRecaptcha: (token: string) => Promise<void>;
+    handleRecaptchaExpired: () => void;
+    handleRecaptchaError: () => void;
+  }
+}
 export default function ContactForm() {
   const {
     register,
@@ -8,24 +16,28 @@ export default function ContactForm() {
     formState: { errors },
   } = useForm();
   useEffect(() => {
-    window["handleRecaptcha"] = handleRecaptcha;
-    window["handleRecaptchaExpired"] = handleRecaptchaExpired;
-    window["handleRecaptchaError"] = handleRecaptchaError;
+    window.handleRecaptcha = handleRecaptcha;
+    window.handleRecaptchaExpired = handleRecaptchaExpired;
+    window.handleRecaptchaError = handleRecaptchaError;
   });
-  const phoneNumberRegex = /\d{10}/;
+  const phoneNumberRegex = /^\d{10}$/;
   const [captchaValid, setCaptchaValid] = useState(false);
-  async function handleFormSubmit(formData): Promise<void> {
+
+  async function handleFormSubmit(formData: FieldValues): Promise<void> {
     if (captchaValid) {
       const response = await fetch("/api/contact", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       alert(
-        response.status === 200
+        response.status === ResponseCodes.SUCCESS
           ? "Thank you! we have recieved your message and will be in touch as needed"
+          : response.status === ResponseCodes.CLIENT_ERROR
+          ? "Hmmm, there seems to be something wrong with your form. Can you double check the details?"
           : "Something went wrong, please try again later"
       );
-      if (response.status === 200) {
+      if (response.status === ResponseCodes.SUCCESS) {
         (document.getElementById("submission-form") as HTMLFormElement).reset();
         grecaptcha.reset();
       }
@@ -33,7 +45,8 @@ export default function ContactForm() {
       alert("Please verify the captcha before submitting");
     }
   }
-  async function handleRecaptcha(token): Promise<void> {
+
+  async function handleRecaptcha(token: string): Promise<void> {
     const response = await fetch("/api/captcha", {
       method: "POST",
       body: JSON.stringify({ token }),
@@ -111,24 +124,16 @@ export default function ContactForm() {
             type="tel"
             placeholder="Phone Number"
             {...register("telephone", {
-              pattern: phoneNumberRegex,
-              maxLength: 10,
+              validate: (value: string) => {
+                if (!value) return true; // optional field
+                const normalized = value.replace(/\D/g, "");
+                return (
+                  phoneNumberRegex.test(normalized) ||
+                  "Phone number must have exactly 10 digits."
+                );
+              },
             })}
           />
-          {errors.telephone && errors.telephone.type === "pattern" && (
-            <span className="text-red-600">
-              Make sure your phone number only has numbers in it. Please do not
-              put other characters in it. Please note we only support Canadian
-              phone numbers at this time.
-            </span>
-          )}
-          {errors.telephone && errors.telephone.type === "maxLength" && (
-            <span className="text-red-600">
-              Your phone number must be exactly 10 digits long (North American
-              standard). Please note we only support Canadian phone numbers at
-              this time.
-            </span>
-          )}
         </label>
       </div>
       <div>

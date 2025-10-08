@@ -1,4 +1,5 @@
 import ContactForm from "../../components/contactForm";
+import Image from "next/image";
 export default function Contact() {
   const apiKey = process.env.MAPS_API;
 
@@ -18,7 +19,7 @@ export default function Contact() {
           </h4>
           <div className="my-4">
             <span className="flex items-center">
-              <img
+              <Image
                 className="inline"
                 height="30"
                 width="30"

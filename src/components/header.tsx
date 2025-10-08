@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import DropdownHeader from "./dropdownHeader";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   const pathname = usePathname();
@@ -69,7 +70,12 @@ export default function Header() {
       >
         <div>
           <Link href="/">
-            <img src="wmcc-white.png" alt="WMCC logo" width={100} />
+            <Image
+              src="/wmcc-white.png"
+              alt="WMCC logo"
+              width={100}
+              height={100}
+            />
           </Link>
         </div>
         <div className="hidden md:flex flex-1 justify-end items-center">

@@ -85,7 +85,7 @@ export default async function Home() {
       <section>
         <div className="border-t-4 w-full px-8 py-14 ">
           <h1 className="text-4xl">Current and upcoming events</h1>
-          {currentEvents.length ? (
+          {currentEvents?.length ? (
             <div className="flex overflow-x-scroll py-10 mask-x-from-70% mask-x-to-90%">
               {currentEvents?.map((upcomingEvent) => (
                 <div key={upcomingEvent.id} className="mx-2">
@@ -96,7 +96,7 @@ export default async function Home() {
           ) : (
             <div className="flex justify-center py-10">
               <div className="bg-[var(--warning-colour)] flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
-                <img
+                <Image
                   src="wmcc-black.png"
                   alt="wmcc white logo"
                   height="80"
