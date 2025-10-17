@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks";
+import { submitForm } from "../app/api/contact/route";
 import { ResponseCodes } from "../app/enums/responseCodes";
+
 declare global {
   interface Window {
     handleRecaptcha: (token: string) => Promise<void>;
@@ -10,6 +13,9 @@ declare global {
   }
 }
 export default function ContactForm() {
+  const { executeAsync } = useAction(submitForm, {
+    onSettled: feedbackSuccess,
+  });
   const {
     register,
     handleSubmit,
@@ -23,24 +29,42 @@ export default function ContactForm() {
   const phoneNumberRegex = /^\d{10}$/;
   const [captchaValid, setCaptchaValid] = useState(false);
 
+  async function feedbackSuccess(response: {
+    result: {
+      error: string;
+      data: unknown;
+      count: number | null;
+      status: number;
+      statusText: string;
+    };
+  }) {
+    console.log(response);
+    const status = response.result.status;
+    alert(
+      status === ResponseCodes.SUCCESS
+        ? "Thank you! we have recieved your message and will be in touch as needed"
+        : status === ResponseCodes.CLIENT_ERROR
+        ? "Hmmm, there seems to be something wrong with your form. Can you double check the details?"
+        : "Something went wrong, please try again later"
+    );
+    if (status === ResponseCodes.SUCCESS) {
+      (document.getElementById("submission-form") as HTMLFormElement).reset();
+      grecaptcha.reset();
+    }
+  }
   async function handleFormSubmit(formData: FieldValues): Promise<void> {
     if (captchaValid) {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      executeAsync({
+        email: formData["email"],
+        message: formData["message"],
+        name: formData["name"],
+        telephone: formData["telephone"],
       });
-      alert(
-        response.status === ResponseCodes.SUCCESS
-          ? "Thank you! we have recieved your message and will be in touch as needed"
-          : response.status === ResponseCodes.CLIENT_ERROR
-          ? "Hmmm, there seems to be something wrong with your form. Can you double check the details?"
-          : "Something went wrong, please try again later"
-      );
-      if (response.status === ResponseCodes.SUCCESS) {
-        (document.getElementById("submission-form") as HTMLFormElement).reset();
-        grecaptcha.reset();
-      }
+      // const response = await fetch("/api/contact", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(formData),
+      // });
     } else {
       alert("Please verify the captcha before submitting");
     }
