@@ -10,7 +10,7 @@ export default function EventPill({
   const eventDate = new Date(upcomingEvent.startdate);
   return (
     <div className="border rounded-xl p-3 min-h-[300px]">
-      <div className="grid grid-cols-2 event-pill items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 event-pill items-center">
         <div className="col-span-1">
           <Image
             height={300}

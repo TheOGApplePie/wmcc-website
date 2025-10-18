@@ -88,9 +88,9 @@ export default async function Home() {
         <div className="border-t-4 w-full px-8 py-14 ">
           <h1 className="text-4xl">Current and upcoming events</h1>
           {currentEvents?.length ? (
-            <div className="flex overflow-x-scroll py-10 mask-x-from-70% mask-x-to-90%">
+            <div className="flex flex-col sm:flex-row sm:overflow-x-scroll py-10">
               {currentEvents?.map((upcomingEvent) => (
-                <div key={upcomingEvent.id} className="mx-2">
+                <div key={upcomingEvent.id} className="m-2">
                   <EventPill upcomingEvent={upcomingEvent}></EventPill>
                 </div>
               ))}
