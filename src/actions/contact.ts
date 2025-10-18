@@ -22,10 +22,13 @@ export const submitForm = actionClient
   .inputSchema(ContactForm)
   .action(async ({ parsedInput }) => {
     try {
-      const ip =
+      let ip =
         (await headers()).get("x-forwarded-for") ||
         (await headers()).get("x-real-ip") ||
         "unknown";
+      if (ip.includes(",")) {
+        ip = ip.split(",")[0].trim();
+      }
       if (ip === "unknown") {
         throw new Error("Unknown IP");
       }
