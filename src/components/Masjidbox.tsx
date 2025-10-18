@@ -1,9 +1,14 @@
 "use client";
 import { useEffect } from "react";
 
-export default function MasjidboxWidget() {
+export default function MasjidboxWidget({
+  xnonceHeader,
+}: {
+  xnonceHeader: string;
+}) {
   useEffect(() => {
     const script = document.createElement("script");
+    script.nonce = xnonceHeader;
     script.src = "https://masjidbox.com/widgets/loader.js";
     script.async = true;
     script.defer = true;

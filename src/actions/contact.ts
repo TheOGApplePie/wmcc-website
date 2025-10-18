@@ -26,6 +26,9 @@ export const submitForm = actionClient
         (await headers()).get("x-forwarded-for") ||
         (await headers()).get("x-real-ip") ||
         "unknown";
+      if (ip === "unknown") {
+        throw new Error("Unknown IP");
+      }
       const { success } = await ratelimit.limit(ip);
       // Check rate limit
       if (!success) {

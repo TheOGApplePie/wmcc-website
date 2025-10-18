@@ -7,9 +7,9 @@ export function middleware(request: NextRequest) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com;
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com https://masjidbox.com;
     style-src 'self' 'unsafe-inline';
-    frame-src https://www.google.com;
+    frame-src https://www.google.com https://masjidbox.com;
     connect-src 'self';
     img-src 'self' data: https:;
     font-src 'self';

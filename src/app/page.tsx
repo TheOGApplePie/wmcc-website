@@ -3,6 +3,7 @@ import MasjidboxWidget from "../components/Masjidbox";
 import EventPill from "../components/eventPill";
 import Image from "next/image";
 import { createClient } from "../utils/supabase/server";
+import { headers } from "next/headers";
 
 export interface Slide {
   id: number;
@@ -22,6 +23,7 @@ export interface UpcomingEvent {
   registrationlink: string;
 }
 export default async function Home() {
+  const xnonceHeader = (await headers()).get("x-nonce") || "";
   const supabase = await createClient();
   const { data: slides } = await supabase
     .from("events")
@@ -31,7 +33,7 @@ export default async function Home() {
   const { data: currentEvents } = await supabase
     .from("events")
     .select(
-      "id, posterurl,posteralt,title,startdate, location, registrationlink"
+      "id, posterurl,posteralt,title,startdate, location, registrationlink",
     )
     .gte("startdate", new Date().toISOString())
     .order("startdate", { ascending: true });
@@ -44,7 +46,7 @@ export default async function Home() {
         ></CarouselComponent>
       </section>
       <section>
-        <MasjidboxWidget />
+        <MasjidboxWidget xnonceHeader={xnonceHeader} />
       </section>
       <section>
         <div className="border-t-4 px-8 py-14 bg-[var(--main-colour-blue)] text-white">
