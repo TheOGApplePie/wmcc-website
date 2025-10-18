@@ -4,100 +4,119 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --main-colour-blue: #1e3a5f;
-  --secondary-colour-green: #026c54;
-  --secondary-colour-green-light: #1b9679;
-  --secondary-colour-green-light-filter: invert(44%) sepia(99%) saturate(362%)
-    hue-rotate(116deg) brightness(88%) contrast(86%);
-  --accent-colour-white: #f5f0f6;
-  --warning-colour: #fbbf24;
+    --background: #ffffff;
+    --foreground: #171717;
+    --main-colour-blue: #1e3a5f;
+    --secondary-colour-green: #026c54;
+    --secondary-colour-green-light: #1b9679;
+    --secondary-colour-green-light-filter: invert(44%) sepia(99%) saturate(362%)
+        hue-rotate(116deg) brightness(88%) contrast(86%);
+    --accent-colour-white: #f5f0f6;
+    --warning-colour: #fbbf24;
 }
 
 header {
-  z-index: 10;
-  transition: box-shadow 0.2s ease-out;
+    z-index: 10;
+    transition: box-shadow 0.2s ease-out;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Outfit", sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: "Outfit", sans-serif;
 }
 
 .bg-secondary-colour-green {
-  background-color: var(--secondary-colour-green);
+    background-color: var(--secondary-colour-green);
 }
 
 .bg-main-colour-blue {
-  background-color: var(--main-colour-blue);
+    background-color: var(--main-colour-blue);
 }
 
 .background-gradient {
-  background: linear-gradient(to right, #08101a, #1e3a5f);
+    background: linear-gradient(to right, #08101a, #1e3a5f);
 }
 
 .carousel {
-  max-height: 90dvh;
+    max-height: 90dvh;
 }
 
 @media screen and (min-width: 992px) {
-  .community-image {
-    background-image: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 25%,
-        rgba(255, 255, 255, 1) 50%
-      ),
-      url("/community-dua.jpg");
-    background-repeat: no-repeat;
-    background-size: contain;
-    border-radius: 10px;
-  }
+    .community-image {
+        background-image:
+            linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 25%,
+                rgba(255, 255, 255, 1) 50%
+            ),
+            url("/community-dua.jpg");
+        background-repeat: no-repeat;
+        background-size: contain;
+        border-radius: 10px;
+    }
 }
 
 .event-pill {
-  width: 450px;
+    width: 450px;
 }
 
 .loader {
-  text-align: center;
-  font-weight: 700;
-  span {
-    width: 100px;
-    font-size: 80px;
-  }
-  span:nth-child(1) {
-    text-anchor: middle;
     text-align: center;
-    animation: animloader 1.5s ease-out infinite;
-    animation-delay: 0s;
-  }
-  span:nth-child(2) {
-    animation: animloader 1.5s ease-out infinite;
-    animation-delay: 200ms;
-  }
-  span:nth-child(3) {
-    animation: animloader 1.5s ease-out infinite;
-    animation-delay: 400ms;
-  }
-  span:nth-child(4) {
-    animation: animloader 1.5s ease-out infinite;
-    animation-delay: 600ms;
-  }
+    font-weight: 700;
+    span {
+        width: 100px;
+        font-size: 80px;
+    }
+    span:nth-child(1) {
+        text-anchor: middle;
+        text-align: center;
+        animation: animloader 1.5s ease-out infinite;
+        animation-delay: 0s;
+    }
+    span:nth-child(2) {
+        animation: animloader 1.5s ease-out infinite;
+        animation-delay: 200ms;
+    }
+    span:nth-child(3) {
+        animation: animloader 1.5s ease-out infinite;
+        animation-delay: 400ms;
+    }
+    span:nth-child(4) {
+        animation: animloader 1.5s ease-out infinite;
+        animation-delay: 600ms;
+    }
+}
+.submitting::after {
+    content: "";
+    animation: animsubmitting 3s infinite;
+}
+@keyframes animloader {
+    0% {
+        transform: scale(1);
+    }
+    20% {
+        transform: scale(1.75);
+    }
+    40% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
-@keyframes animloader {
-  0% {
-    transform: scale(1);
-  }
-  20% {
-    transform: scale(1.75);
-  }
-  40% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1);
-  }
+@keyframes animsubmitting {
+    0% {
+        content: "";
+    }
+    20% {
+        content: ".";
+    }
+    40% {
+        content: "..";
+    }
+    60% {
+        content: "...";
+    }
 }

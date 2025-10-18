@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
-import { submitForm } from "../app/api/contact/route";
+
 import { ResponseCodes } from "../app/enums/responseCodes";
+import { captchaValidation } from "../actions/captcha";
+import { submitForm } from "../actions/contact";
 
 declare global {
   interface Window {
@@ -13,74 +15,78 @@ declare global {
   }
 }
 export default function ContactForm() {
-  const { executeAsync } = useAction(submitForm, {
+  const { executeAsync: submitFeedback } = useAction(submitForm, {
     onSettled: feedbackSuccess,
+  });
+  const { executeAsync: validateCaptcha } = useAction(captchaValidation, {
+    onSettled: onCaptchaValidation,
   });
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({ mode: "onBlur" });
   useEffect(() => {
     window.handleRecaptcha = handleRecaptcha;
     window.handleRecaptchaExpired = handleRecaptchaExpired;
     window.handleRecaptchaError = handleRecaptchaError;
   });
   const phoneNumberRegex = /^\d{10}$/;
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const [captchaValid, setCaptchaValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function feedbackSuccess(response: {
-    result: {
-      error: string;
-      data: unknown;
-      count: number | null;
-      status: number;
-      statusText: string;
-    };
+  async function onCaptchaValidation({
+    result,
+  }: {
+    result: Awaited<ReturnType<typeof captchaValidation>>;
   }) {
-    console.log(response);
-    const status = response.result.status;
-    alert(
-      status === ResponseCodes.SUCCESS
-        ? "Thank you! we have recieved your message and will be in touch as needed"
-        : status === ResponseCodes.CLIENT_ERROR
-        ? "Hmmm, there seems to be something wrong with your form. Can you double check the details?"
-        : "Something went wrong, please try again later"
-    );
-    if (status === ResponseCodes.SUCCESS) {
-      (document.getElementById("submission-form") as HTMLFormElement).reset();
-      grecaptcha.reset();
+    console.log(result.data);
+    setCaptchaValid(result.data?.success ?? false);
+  }
+  async function feedbackSuccess({
+    result,
+  }: {
+    result: Awaited<ReturnType<typeof submitForm>>;
+  }) {
+    setIsSubmitting(false);
+    const status = result.data?.status;
+    let message = "";
+    switch (status) {
+      case ResponseCodes.SUCCESS:
+        message =
+          "Thank you! we have recieved your message and will be in touch as needed";
+        (document.getElementById("submission-form") as HTMLFormElement).reset();
+        grecaptcha.reset();
+        break;
+      case ResponseCodes.CLIENT_ERROR:
+        message =
+          "Hmmm, there seems to be something wrong with your form. Can you double check the details?";
+        break;
+      default:
+        message = "Something went wrong, please try again later";
+        break;
     }
+    alert(message);
   }
   async function handleFormSubmit(formData: FieldValues): Promise<void> {
     if (captchaValid) {
-      executeAsync({
+      setIsSubmitting(true);
+      submitFeedback({
         email: formData["email"],
         message: formData["message"],
         name: formData["name"],
         telephone: formData["telephone"],
       });
-      // const response = await fetch("/api/contact", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(formData),
-      // });
     } else {
       alert("Please verify the captcha before submitting");
     }
   }
 
   async function handleRecaptcha(token: string): Promise<void> {
-    const response = await fetch("/api/captcha", {
-      method: "POST",
-      body: JSON.stringify({ token }),
+    validateCaptcha({
+      token,
     });
-    const { success } = await response.json();
-    if (success as boolean) {
-      setCaptchaValid(true);
-    } else {
-      setCaptchaValid(false);
-    }
   }
 
   function handleRecaptchaExpired() {
@@ -127,7 +133,11 @@ export default function ContactForm() {
             type="email"
             maxLength={50}
             placeholder="Email"
-            {...register("email", { required: true, maxLength: 50 })}
+            {...register("email", {
+              required: true,
+              maxLength: 50,
+              pattern: emailPattern,
+            })}
           />
           {errors.email && errors.email.type === "required" && (
             <span className="text-red-600">Please enter your email.</span>
@@ -136,6 +146,11 @@ export default function ContactForm() {
             <span className="text-red-600">
               You have entered an email that is too long, is there a shorter
               email we can reach you at?
+            </span>
+          )}
+          {errors.email && errors.email.type === "pattern" && (
+            <span className="text-red-600">
+              Hmmm... This doesn&apos;t look like a valid email.
             </span>
           )}
         </label>
@@ -148,16 +163,15 @@ export default function ContactForm() {
             type="tel"
             placeholder="Phone Number"
             {...register("telephone", {
-              validate: (value: string) => {
-                if (!value) return true; // optional field
-                const normalized = value.replace(/\D/g, "");
-                return (
-                  phoneNumberRegex.test(normalized) ||
-                  "Phone number must have exactly 10 digits."
-                );
-              },
+              pattern: phoneNumberRegex,
             })}
           />
+          {errors.telephone && errors.telephone.type === "pattern" && (
+            <span className="text-red-600">
+              Your phone number must have exactly 10 digits (numbers only, no
+              letters or other characters).
+            </span>
+          )}
         </label>
       </div>
       <div>
@@ -167,7 +181,6 @@ export default function ContactForm() {
             className="resize-none w-full rounded p-2 text-black"
             rows={4}
             maxLength={500}
-            minLength={20}
             placeholder="Enter your message"
             {...register("message", {
               required: true,
@@ -180,14 +193,15 @@ export default function ContactForm() {
           )}
           {errors.message && errors.message.type === "maxLength" && (
             <span className="text-red-600">
-              Your message seems to be too long, perhaps you&apos;d like to
-              visit us at our centre for a more fruitful discussion.
+              Your message seems to be too long, you&apos;ve exceeded the 500
+              character limit. Please shorten your message. Perhaps you&apos;d
+              like to visit us at our centre for a more fruitful discussion.
             </span>
           )}
           {errors.message && errors.message.type === "minLength" && (
             <span className="text-red-600">
               Your message doesn&apos;t seem to be long enough. Please provide
-              us with some more detail.
+              us with some more detail (minimum 20 characters).
             </span>
           )}
         </label>
@@ -201,10 +215,11 @@ export default function ContactForm() {
           data-error-callback="handleRecaptchaError"
         ></div>
         <button
-          className="border-0 text-xl p-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)]"
+          className={`border-0 text-xl p-3 mt-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)] disabled:bg-green-950 hover:disabled:cursor-not-allowed ${isSubmitting ? "submitting" : ""}`}
           type="submit"
+          disabled={Object.keys(errors).length > 0 || isSubmitting}
         >
-          Submit
+          {isSubmitting ? "Submitting" : "Submit"}
         </button>
       </div>
     </form>

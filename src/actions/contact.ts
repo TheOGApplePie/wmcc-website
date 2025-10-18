@@ -1,9 +1,8 @@
 "use server";
 import { Ratelimit } from "@upstash/ratelimit";
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "../../../utils/supabase/server";
-import { ContactForm } from "../../schemas/contactForm";
-import { ResponseCodes } from "../../enums/responseCodes";
+import { createClient } from "../utils/supabase/server";
+import { ContactForm } from "../app/schemas/contactForm";
+import { ResponseCodes } from "../app/enums/responseCodes";
 import { Redis } from "@upstash/redis";
 import { headers } from "next/headers";
 import { createSafeActionClient } from "next-safe-action";
@@ -33,21 +32,30 @@ export const submitForm = actionClient
         throw new Error(RATE_LIMIT_MESSAGE);
       }
       const supabase = await createClient();
-      const insertionResponse = await supabase
+      const { data, error, count, statusText } = await supabase
         .from("community-feedback")
         .insert(parsedInput);
-      return insertionResponse;
+      return {
+        error: error?.message ?? "",
+        data,
+        count: count ?? null,
+        status: ResponseCodes.SUCCESS,
+        statusText: statusText ?? "",
+      };
     } catch (error) {
       console.error(error);
       return {
-        error: error,
+        error: error instanceof Error ? error.message : String(error),
         data: null,
         count: null,
         status:
-          (error as { message: string }).message === RATE_LIMIT_MESSAGE
+          error instanceof Error && error.message === RATE_LIMIT_MESSAGE
             ? ResponseCodes.TOO_MANY_REQUESTS
             : ResponseCodes.SERVER_ERROR,
-        statusText: error,
+        statusText:
+          error instanceof Error && error.message === RATE_LIMIT_MESSAGE
+            ? "You have submitted too many requests. Please wait a minute"
+            : "Internal Server Error",
       };
     }
   });
