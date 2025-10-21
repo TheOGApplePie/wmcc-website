@@ -29,7 +29,7 @@ export default function Footer() {
       <div className="flex flex-wrap py-3">
         {footerLinks.map((link) => (
           <a
-            className="px-4 py-2 text-white text-sm sm:text-base"
+            className="px-4 py-2 text-white text-sm sm:text-base hover:text-[var(--secondary-colour-green-light)]"
             key={link.title}
             href={link.link}
           >
@@ -44,16 +44,25 @@ export default function Footer() {
             height={30}
             width={30}
             src="/facebook.png"
-            alt=""
+            alt="wmcc facebook"
           />
         </a>
-        <a href="https://www.instagram.com/wmcc.centre/">
+        <a href="https://www.instagram.com/wmcc.ca/">
           <Image
             className="inline-block mx-2"
             height={30}
             width={30}
             src="/instagram.svg"
-            alt=""
+            alt="wmcc instagram"
+          />
+        </a>
+        <a href="https://www.instagram.com/wmcc.ca/">
+          <Image
+            className="inline-block mx-2"
+            height={30}
+            width={30}
+            src="/whatsapp.svg"
+            alt="wmcc WhatsApp"
           />
         </a>
       </div>

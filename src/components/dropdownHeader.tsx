@@ -8,11 +8,12 @@ export default function DropdownHeader({
   links,
   showDropdownMenu,
 }: DropdownHeaderProps) {
-  if (!showDropdownMenu) {
-    return null;
-  }
   return (
-    <ul className="bg-main-colour-blue md:none inline-block absolute left-0 top-[115px] w-full text-white font-bold">
+    <ul
+      className={`z-[9] bg-main-colour-blue md:none inline-block left-0 absolute ${
+        showDropdownMenu ? "top-full" : "top-[-300px]"
+      } w-full text-white font-bold transition-all duration-500 ease-in-out transform`}
+    >
       {links.map((link) => (
         <li
           key={`dropdown-` + link.title}
@@ -23,7 +24,10 @@ export default function DropdownHeader({
           </a>
         </li>
       ))}
-      <li key="donate" className="p-3 text-center bg-secondary-colour-green">
+      <li
+        key="donate"
+        className="p-3 text-center bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)]"
+      >
         <a key="dropdown-donate" href="donate">
           Donate
         </a>

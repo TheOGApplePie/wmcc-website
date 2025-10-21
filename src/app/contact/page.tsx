@@ -1,4 +1,5 @@
 import ContactForm from "../../components/contactForm";
+import Image from "next/image";
 export default function Contact() {
   const apiKey = process.env.MAPS_API;
 
@@ -18,7 +19,7 @@ export default function Contact() {
           </h4>
           <div className="my-4">
             <span className="flex items-center">
-              <img
+              <Image
                 className="inline"
                 height="30"
                 width="30"
@@ -30,11 +31,15 @@ export default function Contact() {
             {!apiKey ? (
               <div>Loading...</div>
             ) : (
-              <iframe className="w-full" src={googleMapsURL}></iframe>
+              <iframe
+                title="googlemaps"
+                className="w-full"
+                src={googleMapsURL}
+              ></iframe>
             )}
           </div>
         </div>
-        <div className="p-5 h-full rounded-b-lg rounded-r-none sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
+        <div className="p-5 h-full rounded-b-lg sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
           <ContactForm />
         </div>
       </div>
