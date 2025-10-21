@@ -1,17 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
 
 import { ResponseCodes } from "../app/enums/responseCodes";
 import { captchaValidation } from "../actions/captcha";
 import { submitForm } from "../actions/contact";
+import AlertModal from "./alertModal";
 
 declare global {
   interface Window {
-    handleRecaptcha: (token: string) => Promise<void>;
-    handleRecaptchaExpired: () => void;
-    handleRecaptchaError: () => void;
+    handleRecaptcha?: (token: string) => Promise<void>;
+    handleRecaptchaExpired?: () => void;
+    handleRecaptchaError?: () => void;
   }
 }
 export default function ContactForm() {
@@ -21,20 +22,52 @@ export default function ContactForm() {
   const { executeAsync: validateCaptcha } = useAction(captchaValidation, {
     onSettled: onCaptchaValidation,
   });
+  const phoneNumberRegex = /^\d{10}$/;
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const [captchaValid, setCaptchaValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const handleRecaptcha = useCallback(
+    async (token: string) => {
+      validateCaptcha({
+        token,
+      });
+    },
+    [validateCaptcha],
+  );
+
+  const handleRecaptchaExpired = useCallback(() => {
+    setAlertMessage("The recaptcha has expired. Please verify again.");
+    setShowModal(true);
+    setCaptchaValid(false);
+  }, []);
+  const handleRecaptchaError = useCallback(() => {
+    setAlertMessage("Something went wrong, please try again later.");
+    setShowModal(true);
+    setCaptchaValid(false);
+  }, []);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onBlur" });
   useEffect(() => {
-    window.handleRecaptcha = handleRecaptcha;
-    window.handleRecaptchaExpired = handleRecaptchaExpired;
-    window.handleRecaptchaError = handleRecaptchaError;
-  });
-  const phoneNumberRegex = /^\d{10}$/;
-  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const [captchaValid, setCaptchaValid] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    if (typeof window !== "undefined") {
+      window.handleRecaptcha = handleRecaptcha;
+      window.handleRecaptchaExpired = handleRecaptchaExpired;
+      window.handleRecaptchaError = handleRecaptchaError;
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        delete window.handleRecaptcha;
+        delete window.handleRecaptchaExpired;
+        delete window.handleRecaptchaError;
+      }
+    };
+  }, [handleRecaptcha, handleRecaptchaExpired, handleRecaptchaError]);
 
   async function onCaptchaValidation({
     result,
@@ -44,6 +77,7 @@ export default function ContactForm() {
     console.log(result.data);
     setCaptchaValid(result.data?.success ?? false);
   }
+
   async function feedbackSuccess({
     result,
   }: {
@@ -55,7 +89,7 @@ export default function ContactForm() {
     switch (status) {
       case ResponseCodes.SUCCESS:
         message =
-          "Thank you! we have recieved your message and will be in touch as needed";
+          "Thank you! We have recieved your message and will be in touch as needed.";
         (document.getElementById("submission-form") as HTMLFormElement).reset();
         grecaptcha.reset();
         break;
@@ -64,38 +98,28 @@ export default function ContactForm() {
           "Hmmm, there seems to be something wrong with your form. Can you double check the details?";
         break;
       default:
-        message = "Something went wrong, please try again later";
+        message =
+          result.data?.statusText ??
+          "Something went wrong, please try again later.";
         break;
     }
-    alert(message);
+    setAlertMessage(message);
+    setShowModal(true);
   }
+
   async function handleFormSubmit(formData: FieldValues): Promise<void> {
-    if (captchaValid) {
-      setIsSubmitting(true);
-      submitFeedback({
-        email: formData["email"],
-        message: formData["message"],
-        name: formData["name"],
-        telephone: formData["telephone"],
-      });
-    } else {
-      alert("Please verify the captcha before submitting");
+    if (!captchaValid) {
+      setAlertMessage("Please verify the captcha before submitting");
+      setShowModal(true);
+      return;
     }
-  }
-
-  async function handleRecaptcha(token: string): Promise<void> {
-    validateCaptcha({
-      token,
+    setIsSubmitting(true);
+    submitFeedback({
+      email: formData["email"],
+      message: formData["message"],
+      name: formData["name"],
+      telephone: formData["telephone"],
     });
-  }
-
-  function handleRecaptchaExpired() {
-    alert("The recaptcha has expired. Please verify again.");
-    setCaptchaValid(false);
-  }
-  function handleRecaptchaError() {
-    alert("Something went wrong, please try again later.");
-    setCaptchaValid(false);
   }
 
   return (
@@ -104,6 +128,13 @@ export default function ContactForm() {
       className="sm:p-4 mb-3 bg-light text-xl"
       onSubmit={handleSubmit(handleFormSubmit)}
     >
+      <AlertModal
+        content={alertMessage}
+        modalIsOpen={showModal}
+        closeModal={() => {
+          setShowModal(false);
+        }}
+      />
       <div>
         <label className="text-white" htmlFor="name">
           Full Name*
@@ -217,7 +248,9 @@ export default function ContactForm() {
         <button
           className={`border-0 text-xl p-3 mt-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)] disabled:bg-green-950 hover:disabled:cursor-not-allowed ${isSubmitting ? "submitting" : ""}`}
           type="submit"
-          disabled={Object.keys(errors).length > 0 || isSubmitting}
+          disabled={
+            Object.keys(errors).length > 0 || isSubmitting || !captchaValid
+          }
         >
           {isSubmitting ? "Submitting" : "Submit"}
         </button>

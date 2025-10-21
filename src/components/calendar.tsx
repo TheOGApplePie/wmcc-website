@@ -63,7 +63,7 @@ export default function Calendar() {
     const { start, end } = args;
     setCalendarLoading(true);
     const data = await fetch(
-      `/api/events/?start=${start.toISOString()}&end=${end.toISOString()}`
+      `/api/events/?start=${start.toISOString()}&end=${end.toISOString()}`,
     );
     const { currentEvents } = await data.json();
     const mappedEvents = currentEvents.map(
@@ -73,7 +73,7 @@ export default function Calendar() {
           start: event.startdate,
           end: event.enddate,
         };
-      }
+      },
     );
     setEvents(mappedEvents);
     setCalendarLoading(false);

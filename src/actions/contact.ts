@@ -29,9 +29,7 @@ export const submitForm = actionClient
       if (ip.includes(",")) {
         ip = ip.split(",")[0].trim();
       }
-      if (ip === "unknown") {
-        throw new Error("Unknown IP");
-      }
+
       const { success } = await ratelimit.limit(ip);
       // Check rate limit
       if (!success) {

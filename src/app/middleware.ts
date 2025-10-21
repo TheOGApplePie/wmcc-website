@@ -1,4 +1,3 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -11,8 +10,8 @@ export function middleware(request: NextRequest) {
     style-src 'self' 'unsafe-inline';
     frame-src https://www.google.com https://masjidbox.com;
     connect-src 'self' https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io;
-    img-src 'self' data: https:;
-    font-src 'self';
+    img-src 'self' https://gkpctbvyswcfccogoepl.supabase.co;
+    font-src 'self' https://fonts.googleapis.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
