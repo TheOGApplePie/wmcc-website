@@ -74,7 +74,6 @@ export default function ContactForm() {
   }: {
     result: Awaited<ReturnType<typeof captchaValidation>>;
   }) {
-    console.log(result.data);
     setCaptchaValid(result.data?.success ?? false);
   }
 
