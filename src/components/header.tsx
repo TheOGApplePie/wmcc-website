@@ -82,6 +82,7 @@ export default function Header() {
           <button className="border-0 sm:rounded text-xl p-3 text-white">
             <a
               key="big-donate"
+              rel="noopener noreferrer"
               href="https://app.irm.io/wmcc.ca/operations"
               target="_blank"
             >

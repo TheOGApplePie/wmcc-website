@@ -26,6 +26,7 @@ export default function DropdownHeader({
       <li key="donate" className="p-3 text-center bg-secondary-colour-green">
         <a
           key="dropdown-donate"
+          rel="noopener noreferrer"
           href="https://app.irm.io/wmcc.ca/operations"
           target="_blank"
         >
