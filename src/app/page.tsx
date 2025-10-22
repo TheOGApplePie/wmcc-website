@@ -107,6 +107,21 @@ export default async function Home() {
           )}
         </div>
       </section>
+      <section>
+        <div className="border-t-4 p-8 bg-[var(--main-colour-blue)] text-white">
+          <div className="pb-8">
+            <h1 className="text-4xl">Help support the WMCC! Donate today!</h1>
+          </div>
+          <div className="flex items-center justify-center">
+            <iframe
+              src="https://app.irm.io/wmcc.ca/operations"
+              width={850}
+              height={600}
+              title="WMCC Operations Donation"
+            ></iframe>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
