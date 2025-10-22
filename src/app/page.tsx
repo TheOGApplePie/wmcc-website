@@ -110,7 +110,9 @@ export default async function Home() {
       <section>
         <div className="border-t-4 p-8 bg-[var(--main-colour-blue)] text-white">
           <div className="pb-8">
-            <h1 className="text-4xl">Help support the WMCC! Donate today!</h1>
+            <h1 className="text-4xl">
+              Help support the WMCC and donate today!
+            </h1>
           </div>
           <div className="flex items-center justify-center">
             <iframe
@@ -118,6 +120,9 @@ export default async function Home() {
               width={850}
               height={600}
               title="WMCC Operations Donation"
+              sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+              referrerPolicy="strict-origin"
+              loading="lazy"
             ></iframe>
           </div>
         </div>
