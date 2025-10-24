@@ -24,7 +24,12 @@ export default function DropdownHeader({
         </li>
       ))}
       <li key="donate" className="p-3 text-center bg-secondary-colour-green">
-        <a key="dropdown-donate" href="donate">
+        <a
+          key="dropdown-donate"
+          rel="noopener noreferrer"
+          href="https://app.irm.io/wmcc.ca/operations"
+          target="_blank"
+        >
           Donate
         </a>
       </li>
