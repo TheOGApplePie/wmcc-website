@@ -88,8 +88,13 @@ export default function Header() {
               {link.title}
             </a>
           ))}
-          <button className="rounded text-xl p-4 text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)]">
-            <a key="big-donate" href="donate">
+          <button className="border-0 sm:rounded text-xl p-3 text-white">
+            <a
+              key="big-donate"
+              rel="noopener noreferrer"
+              href="https://app.irm.io/wmcc.ca/operations"
+              target="_blank"
+            >
               Donate
             </a>
           </button>
