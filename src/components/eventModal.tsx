@@ -1,21 +1,27 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons/faClose";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import dayjs from "dayjs";
+import { EventImpl } from "@fullcalendar/core/internal";
 
+interface EventModalProps {
+  event: EventImpl | null;
+  modalIsOpen: boolean;
+  closeModal: () => void;
+}
 export default function EventModal({
   event,
   modalIsOpen,
   closeModal,
-  eventPosition,
-}) {
-  if (!modalIsOpen) {
+}: Readonly<EventModalProps>) {
+  if (!modalIsOpen || !event) {
     return null;
   }
   const startDate = dayjs(event.extendedProps.startdate).format(
-    "dddd, MMMM D, YYYY h:mm A",
+    "dddd, MMMM D, YYYY h:mm A"
   );
   return (
-    <div className="p-4 sm:mx-auto left-1/4 fixed z-50 sm:w-1/2 border shadow-md rounded-md bg-white">
+    <div className="p-4 m-auto absolute left-0 z-10 sm:w-1/2 border shadow-md rounded-md bg-white">
       <div className="pb-4 text-center">
         <button className="float-start text-2xl" onClick={closeModal}>
           <FontAwesomeIcon icon={faClose} />
@@ -25,9 +31,11 @@ export default function EventModal({
       </div>
       <div className="grid justify-start gap-4 grid-cols-4">
         <div className="col-span-2">
-          <img
+          <Image
             src={event.extendedProps.posterurl}
             alt={event.extendedProps.posteralt}
+            height={300}
+            width={300}
           />
         </div>
         <div className="col-span-2">

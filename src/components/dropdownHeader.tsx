@@ -8,11 +8,12 @@ export default function DropdownHeader({
   links,
   showDropdownMenu,
 }: DropdownHeaderProps) {
-  if (!showDropdownMenu) {
-    return null;
-  }
   return (
-    <ul className="bg-main-colour-blue md:none inline-block absolute left-0 top-[115px] w-full text-white font-bold">
+    <ul
+      className={`z-[9] bg-main-colour-blue md:none inline-block left-0 absolute ${
+        showDropdownMenu ? "top-full" : "top-[-300px]"
+      } w-full text-white font-bold transition-all duration-500 ease-in-out transform`}
+    >
       {links.map((link) => (
         <li
           key={`dropdown-` + link.title}
