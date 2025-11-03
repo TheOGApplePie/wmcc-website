@@ -27,27 +27,34 @@ export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
   const supabase = await createClient();
   const today = new Date();
-  const { data: slides } = await supabase
-    .from("announcements")
-    .select(
-      "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
-    )
-    .gt("expires_at", today.toISOString());
+  let slides: Announcement[] = [];
+  let currentEvents: UpcomingEvent[] = [];
+  try {
+    let anouncements = await supabase
+      .from("announcements")
+      .select(
+        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
+      )
+      .gt("expires_at", today.toISOString());
+    let events = await supabase
+      .from("events")
+      .select(
+        "id, poster_url,poster_alt,title,start_date, location, registration_link"
+      )
+      .gte("start_date", today.toISOString())
+      .order("start_date", { ascending: true });
 
-  const { data: currentEvents } = await supabase
-    .from("events")
-    .select(
-      "id, poster_url,poster_alt,title,start_date, location, registration_link"
-    )
-    .gte("startdate", today.toISOString())
-    .order("startdate", { ascending: true });
+    slides = anouncements.data || [];
+    currentEvents = events.data || [];
+  } catch (error) {
+    console.error(error);
+    alert("There was an error while fetching data for the home page.");
+  }
 
   return (
     <div>
       <section>
-        <CarouselComponent
-          content={(slides as Announcement[]) || []}
-        ></CarouselComponent>
+        <CarouselComponent content={slides}></CarouselComponent>
       </section>
       <section>
         <MasjidboxWidget xnonceHeader={xnonceHeader} />
