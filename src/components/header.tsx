@@ -88,7 +88,7 @@ export default function Header() {
               {link.title}
             </a>
           ))}
-          <button className="border-0 sm:rounded text-xl p-3 text-white">
+          <button className="border-0 sm:rounded text-xl p-3 text-white hover:bg-[var(--secondary-colour-green-light)]">
             <a
               key="big-donate"
               rel="noopener noreferrer"

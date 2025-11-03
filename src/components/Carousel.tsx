@@ -38,7 +38,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
         setIsTransitioning(false);
       }, 100);
     },
-    [isTransitioning, currentSlide],
+    [isTransitioning, currentSlide]
   );
 
   // Auto-advance slides
@@ -49,33 +49,30 @@ export default function CarouselComponent({ content }: SlideshowProps) {
 
     return () => clearInterval(interval);
   }, [nextSlide]);
-  if (!content?.length) {
-    return (
-      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center">
-        <p className="text-white text-4xl">
-          There are no announcements just yet. But stay tuned!
-        </p>
-      </div>
-    );
-  } else {
+  if (content?.length) {
     return (
       <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f]">
         {/* Slides */}
         {content.map((slide, index) => (
           <div
             key={index}
-            className={`grid grid-cols-1 ${currentSlide.poster_url ? "sm:grid-cols-2" : ""} absolute inset-0 transition-all duration-500 ease-out transform ${
+            className={`grid grid-cols-1 ${
+              slide.poster_url ? "sm:grid-cols-2" : ""
+            } absolute inset-0 transition-all duration-500 ease-out transform ${
               index === currentSlide
                 ? "opacity-100 translate-x-0"
                 : index < currentSlide
-                  ? "opacity-0 -translate-x-full"
-                  : "opacity-0 translate-x-full"
+                ? "opacity-0 -translate-x-full"
+                : "opacity-0 translate-x-full"
             }`}
           >
-            {currentSlide.poster_url ? (
+            {slide.poster_url ? (
               <>
-                <div className="col-span-1 hidden sm:flex sm:flex-col sm:items-center sm:justify-center p-8">
+                <div className="col-span-1 hidden sm:flex flex-col sm:items-center sm:justify-center p-8">
                   <div className="text-center max-w-md mb-6">
+                    <h1 className="text-5xl font-bold text-white mb-4">
+                      {slide.title}
+                    </h1>
                     <h2 className="text-3xl font-bold text-white mb-4">
                       {slide.description}
                     </h2>
@@ -85,6 +82,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                       <a
                         href={slide.call_to_action_link}
                         className="inline-block"
+                        target="_blank"
                       >
                         <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
                           {slide.call_to_action_caption}
@@ -103,7 +101,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                       className="absolute inset-0 w-full h-full object-contain rounded-lg"
                       onError={(e) => {
                         console.error(
-                          `Failed to load image: ${slide.poster_url}`,
+                          `Failed to load image: ${slide.poster_url}`
                         );
                         e.currentTarget.style.display = "none";
                       }}
@@ -123,7 +121,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                 </div>
               </>
             ) : (
-              <div className="hidden sm:flex sm:flex-col sm:items-center sm:justify-center p-8">
+              <div className="flex flex-col items-center justify-center p-8">
                 <div className="text-center max-w-md mb-6">
                   <h2 className="text-5xl font-bold text-white mb-4">
                     {slide.title}
@@ -133,7 +131,11 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                   </h2>
                 </div>
                 {slide.call_to_action_link && slide.call_to_action_caption && (
-                  <a href={slide.call_to_action_link} className="inline-block">
+                  <a
+                    type="_blank"
+                    href={slide.call_to_action_link}
+                    className="inline-block"
+                  >
                     <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
                       {slide.call_to_action_caption}
                     </button>
@@ -178,6 +180,14 @@ export default function CarouselComponent({ content }: SlideshowProps) {
             />
           ))}
         </div>
+      </div>
+    );
+  } else {
+    return (
+      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center mx-5">
+        <p className="text-white text-4xl">
+          There are no announcements just yet. But stay tuned!
+        </p>
       </div>
     );
   }
