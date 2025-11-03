@@ -17,8 +17,8 @@ export default function EventModal({
   if (!modalIsOpen || !event) {
     return null;
   }
-  const startDate = dayjs(event.extendedProps.startdate).format(
-    "dddd, MMMM D, YYYY h:mm A"
+  const startDate = dayjs(event.extendedProps.start_date).format(
+    "dddd, MMMM D, YYYY h:mm A",
   );
   return (
     <div className="p-4 m-auto absolute left-0 z-10 sm:w-1/2 border shadow-md rounded-md bg-white">
@@ -32,14 +32,14 @@ export default function EventModal({
       <div className="grid justify-start gap-4 grid-cols-4">
         <div className="col-span-2">
           <Image
-            src={event.extendedProps.posterurl}
-            alt={event.extendedProps.posteralt}
+            src={event.extendedProps.poster_url}
+            alt={event.extendedProps.poster_alt}
             height={300}
             width={300}
           />
         </div>
         <div className="col-span-2">
-          <p className="text-xl">{event.extendedProps.caption}</p>
+          <p className="text-xl">{event.extendedProps.description}</p>
           <h2 className="py-4 text-2xl">Location and time</h2>
           <p>{startDate}</p>
           <p>{event.extendedProps.location}</p>

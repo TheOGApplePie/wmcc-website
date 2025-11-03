@@ -67,11 +67,11 @@ export default function Calendar() {
     );
     const { currentEvents } = await data.json();
     const mappedEvents = currentEvents.map(
-      (event: { startdate: Date; enddate: Date }) => {
+      (event: { start_date: Date; end_date: Date }) => {
         return {
           ...event,
-          start: event.startdate,
-          end: event.enddate,
+          start: event.start_date,
+          end: event.end_date,
         };
       },
     );

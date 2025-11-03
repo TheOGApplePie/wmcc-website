@@ -7,7 +7,7 @@ interface EventPillAttributes {
 export default function EventPill({
   upcomingEvent,
 }: Readonly<EventPillAttributes>) {
-  const eventDate = new Date(upcomingEvent.startdate);
+  const eventDate = new Date(upcomingEvent.start_date);
   return (
     <div className="border rounded-xl p-3 min-h-[300px]">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 event-pill items-center">
@@ -15,8 +15,8 @@ export default function EventPill({
           <Image
             height={300}
             width={200}
-            src={upcomingEvent.posterurl}
-            alt={upcomingEvent.posteralt}
+            src={upcomingEvent.poster_url}
+            alt={upcomingEvent.poster_alt}
           />
         </div>
         <div className="col-span-1">
@@ -34,7 +34,7 @@ export default function EventPill({
           </p>
           <p>
             <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-              <a href={upcomingEvent.registrationlink}>Register here</a>
+              <a href={upcomingEvent.registration_link}>Register here</a>
             </button>
           </p>
         </div>

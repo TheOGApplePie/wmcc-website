@@ -10,9 +10,9 @@ export async function GET(req: NextRequest) {
   const { data: currentEvents } = await supabase
     .from("events")
     .select(
-      "id, posterurl,posteralt,title,startdate, location, enddate, caption",
+      "id, poster_url,poster_alt,title,start_date, location, end_date, description",
     )
-    .gte("startdate", start)
-    .lte("startdate", end);
+    .gte("start_date", start)
+    .lte("start_date", end);
   return NextResponse.json({ currentEvents });
 }
