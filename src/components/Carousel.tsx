@@ -132,7 +132,8 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                 </div>
                 {slide.call_to_action_link && slide.call_to_action_caption && (
                   <a
-                    type="_blank"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     href={slide.call_to_action_link}
                     className="inline-block"
                   >
