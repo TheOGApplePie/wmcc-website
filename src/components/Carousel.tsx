@@ -83,6 +83,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                         href={slide.call_to_action_link}
                         className="inline-block"
                         target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
                           {slide.call_to_action_caption}

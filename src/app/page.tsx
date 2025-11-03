@@ -30,13 +30,13 @@ export default async function Home() {
   let slides: Announcement[] = [];
   let currentEvents: UpcomingEvent[] = [];
   try {
-    let anouncements = await supabase
+    const anouncements = await supabase
       .from("announcements")
       .select(
         "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
       )
       .gt("expires_at", today.toISOString());
-    let events = await supabase
+    const events = await supabase
       .from("events")
       .select(
         "id, poster_url,poster_alt,title,start_date, location, registration_link"
