@@ -2,15 +2,17 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
-import { EventClickArg } from "@fullcalendar/core/index.js";
+import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import { useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
 import { EventImpl } from "@fullcalendar/core/internal";
+import { fetchEvents } from "../actions/events";
+import { WMCCEvent } from "../app/schemas/events";
 
 export default function Calendar() {
   const [event, setEvent] = useState<EventImpl | null>(null);
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<EventInput[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [toolbarHeader, setToolbarHeader] = useState({
@@ -19,7 +21,8 @@ export default function Calendar() {
     end: "dayGridMonth,dayGridWeek",
   });
   const calendarRef = useRef<FullCalendar | null>(null);
-  const handleResize = () => {
+
+  function handleResize() {
     const calendarApi = calendarRef.current?.getApi?.();
     if (!calendarApi) {
       return;
@@ -46,7 +49,7 @@ export default function Calendar() {
         calendarApi.changeView("listMonth");
       }
     }
-  };
+  }
 
   useEffect(() => {
     window.addEventListener("resize", handleResize, { passive: true });
@@ -55,27 +58,30 @@ export default function Calendar() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
   function handleEventClick(event: EventClickArg) {
     setEvent(event.event);
     setModalIsOpen(true);
   }
+
   async function handleDatesSet(args: { start: Date; end: Date }) {
     const { start, end } = args;
     setCalendarLoading(true);
-    const data = await fetch(
-      `/api/events/?start=${start.toISOString()}&end=${end.toISOString()}`,
-    );
-    const { currentEvents } = await data.json();
-    const mappedEvents = currentEvents.map(
-      (event: { startdate: Date; enddate: Date }) => {
-        return {
-          ...event,
-          start: event.startdate,
-          end: event.enddate,
-        };
-      },
-    );
-    setEvents(mappedEvents);
+    const fetchedEvents = await fetchEvents({
+      start,
+      end,
+    });
+    const data = fetchedEvents.data?.data;
+
+    const mappedEvents = data?.map((event: WMCCEvent) => {
+      return {
+        ...event,
+        start: event.start_date,
+        end: event.end_date,
+      };
+    });
+
+    setEvents(mappedEvents?.length ? mappedEvents : []);
     setCalendarLoading(false);
   }
 
@@ -97,7 +103,7 @@ export default function Calendar() {
         initialView="dayGridMonth"
         headerToolbar={toolbarHeader}
         height={"calc(100dvh - 100px)"}
-        eventSources={[events]}
+        events={events}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}
         windowResizeDelay={100}

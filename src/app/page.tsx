@@ -5,45 +5,55 @@ import Image from "next/image";
 import { createClient } from "../utils/supabase/server";
 import { headers } from "next/headers";
 
-export interface Slide {
+export interface Announcement {
   id: number;
-  posterurl: string;
-  registrationlink: string;
-  caption: string;
-  posteralt: string;
-  buttoncaption: string;
+  title: string;
+  description: string;
+  poster_url: string;
+  call_to_action_link: string;
+  poster_alt: string;
+  call_to_action_caption: string;
 }
 export interface UpcomingEvent {
   id: number;
-  posterurl: string;
-  posteralt: string;
+  poster_url: string;
+  poster_alt: string;
   title: string;
-  startdate: string;
+  start_date: string;
   location: string;
-  registrationlink: string;
+  registration_link: string;
 }
 export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
   const supabase = await createClient();
-  const { data: slides } = await supabase
-    .from("events")
-    .select("id,posterurl,registrationlink,caption,posteralt,buttoncaption")
-    .eq("featureinslideshow", true);
+  const today = new Date();
+  let slides: Announcement[] = [];
+  let currentEvents: UpcomingEvent[] = [];
+  try {
+    const anouncements = await supabase
+      .from("announcements")
+      .select(
+        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
+      )
+      .gt("expires_at", today.toISOString());
+    const events = await supabase
+      .from("events")
+      .select(
+        "id, poster_url,poster_alt,title,start_date, location, registration_link"
+      )
+      .gte("start_date", today.toISOString())
+      .order("start_date", { ascending: true });
 
-  const { data: currentEvents } = await supabase
-    .from("events")
-    .select(
-      "id, posterurl,posteralt,title,startdate, location, registrationlink",
-    )
-    .gte("startdate", new Date().toISOString())
-    .order("startdate", { ascending: true });
+    slides = anouncements.data || [];
+    currentEvents = events.data || [];
+  } catch (error) {
+    console.error(error);
+  }
 
   return (
     <div>
       <section>
-        <CarouselComponent
-          content={(slides as Slide[]) || []}
-        ></CarouselComponent>
+        <CarouselComponent content={slides}></CarouselComponent>
       </section>
       <section>
         <MasjidboxWidget xnonceHeader={xnonceHeader} />
@@ -99,7 +109,7 @@ export default async function Home() {
             <div className="flex justify-center py-10">
               <div className="bg-[var(--warning-colour)] flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
                 <Image
-                  src="wmcc-black.png"
+                  src="/wmcc-black.png"
                   alt="wmcc white logo"
                   height="80"
                   width="80"

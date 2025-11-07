@@ -17,11 +17,11 @@ export default function EventModal({
   if (!modalIsOpen || !event) {
     return null;
   }
-  const startDate = dayjs(event.extendedProps.startdate).format(
+  const startDate = dayjs(event.extendedProps.start_date).format(
     "dddd, MMMM D, YYYY h:mm A"
   );
   return (
-    <div className="p-4 m-auto absolute left-0 z-10 sm:w-1/2 border shadow-md rounded-md bg-white">
+    <div className="p-4 m-auto absolute top-1/2 bottom-1/2 left-0 right-0 z-[9] h-fit sm:w-1/2 border shadow-md rounded-md bg-white">
       <div className="pb-4 text-center">
         <button className="float-start text-2xl" onClick={closeModal}>
           <FontAwesomeIcon icon={faClose} />
@@ -30,16 +30,20 @@ export default function EventModal({
         <h1 className="text-3xl">{event.title}</h1>
       </div>
       <div className="grid justify-start gap-4 grid-cols-4">
+        {event.extendedProps.poster_url && (
+          <div className="col-span-2">
+            <Image
+              src={event.extendedProps.poster_url}
+              alt={
+                event.extendedProps.poster_alt || `Poster for ${event.title}`
+              }
+              height={300}
+              width={300}
+            />
+          </div>
+        )}
         <div className="col-span-2">
-          <Image
-            src={event.extendedProps.posterurl}
-            alt={event.extendedProps.posteralt}
-            height={300}
-            width={300}
-          />
-        </div>
-        <div className="col-span-2">
-          <p className="text-xl">{event.extendedProps.caption}</p>
+          <p className="text-xl">{event.extendedProps.description}</p>
           <h2 className="py-4 text-2xl">Location and time</h2>
           <p>{startDate}</p>
           <p>{event.extendedProps.location}</p>
