@@ -21,7 +21,7 @@ export default function EventModal({
     "dddd, MMMM D, YYYY h:mm A"
   );
   return (
-    <div className="p-4 m-auto absolute left-0 z-10 sm:w-1/2 border shadow-md rounded-md bg-white">
+    <div className="p-4 m-auto absolute top-1/2 bottom-1/2 left-0 right-0 z-[9] h-fit sm:w-1/2 border shadow-md rounded-md bg-white">
       <div className="pb-4 text-center">
         <button className="float-start text-2xl" onClick={closeModal}>
           <FontAwesomeIcon icon={faClose} />

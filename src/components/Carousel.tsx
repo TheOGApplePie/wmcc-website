@@ -2,6 +2,7 @@
 import { Announcement } from "../app/page";
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface SlideshowProps {
   content: Announcement[];
@@ -12,7 +13,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const nextSlide = useCallback(() => {
-    if (isTransitioning) return;
+    if (isTransitioning || content.length < 2) return;
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentSlide((prev) => (prev + 1) % content.length);
@@ -21,7 +22,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
   }, [isTransitioning, content.length]);
 
   const prevSlide = useCallback(() => {
-    if (isTransitioning) return;
+    if (isTransitioning || content.length < 2) return;
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentSlide((prev) => (prev - 1 + content.length) % content.length);
@@ -44,11 +45,12 @@ export default function CarouselComponent({ content }: SlideshowProps) {
   // Auto-advance slides
   useEffect(() => {
     const interval = setInterval(() => {
-      nextSlide();
+      if (content.length > 1) nextSlide();
     }, 5000);
 
     return () => clearInterval(interval);
   }, [nextSlide]);
+
   if (content?.length) {
     return (
       <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f]">
@@ -68,7 +70,11 @@ export default function CarouselComponent({ content }: SlideshowProps) {
           >
             {slide.poster_url ? (
               <>
-                <div className="col-span-1 hidden sm:flex flex-col sm:items-center sm:justify-center p-8">
+                <div
+                  className={`${
+                    slide.poster_url ? "hidden sm:flex" : "flex"
+                  } col-span-1 flex-col items-center justify-center p-8`}
+                >
                   <div className="text-center max-w-md mb-6">
                     <h1 className="text-5xl font-bold text-white mb-4">
                       {slide.title}
@@ -77,19 +83,18 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                       {slide.description}
                     </h2>
                   </div>
-                  {slide.call_to_action_link &&
-                    slide.call_to_action_caption && (
-                      <a
+                  {slide.call_to_action_link && (
+                    <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
+                      <Link
                         href={slide.call_to_action_link}
                         className="inline-block"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
-                          {slide.call_to_action_caption}
-                        </button>
-                      </a>
-                    )}
+                        {slide.call_to_action_caption}
+                      </Link>
+                    </button>
+                  )}
                 </div>
 
                 <div className="col-span-1 flex flex-col sm:flex-row items-center justify-center p-8">
@@ -108,17 +113,13 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                       }}
                     />
                   </div>
-                  {slide.call_to_action_link &&
-                    slide.call_to_action_caption && (
-                      <a
-                        href={slide.call_to_action_link}
-                        className="inline-block sm:hidden"
-                      >
-                        <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green-light)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
-                          {slide.call_to_action_caption}
-                        </button>
-                      </a>
-                    )}
+                  {slide.call_to_action_link && (
+                    <button className="inline-block sm:hidden bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green-light)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
+                      <Link href={slide.call_to_action_link}>
+                        {slide.call_to_action_caption}
+                      </Link>
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
@@ -186,7 +187,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
     );
   } else {
     return (
-      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center mx-5">
+      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center">
         <p className="text-white text-4xl">
           There are no announcements just yet. But stay tuned!
         </p>

@@ -2,11 +2,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
-
-import { ResponseCodes } from "../app/enums/responseCodes";
 import { captchaValidation } from "../actions/captcha";
 import { submitForm } from "../actions/contact";
-import AlertModal from "./alertModal";
+import { Slide, toast, ToastContainer, TypeOptions } from "react-toastify";
 
 declare global {
   interface Window {
@@ -15,7 +13,17 @@ declare global {
     handleRecaptchaError?: () => void;
   }
 }
-export default function ContactForm() {
+function notifyUser(message: string, type: string) {
+  toast(message, {
+    type: type as TypeOptions,
+    theme: "colored",
+  });
+}
+export default function ContactForm({
+  captchaPublicKey,
+}: Readonly<{
+  captchaPublicKey: string;
+}>) {
   const { executeAsync: submitFeedback } = useAction(submitForm, {
     onSettled: feedbackSuccess,
   });
@@ -26,25 +34,23 @@ export default function ContactForm() {
   const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const [captchaValid, setCaptchaValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [textareaLength, setTextareaLength] = useState(0);
   const handleRecaptcha = useCallback(
     async (token: string) => {
       validateCaptcha({
         token,
       });
     },
-    [validateCaptcha],
+    [validateCaptcha]
   );
 
   const handleRecaptchaExpired = useCallback(() => {
-    setAlertMessage("The recaptcha has expired. Please verify again.");
-    setShowModal(true);
+    notifyUser("The recaptcha has expired. Please verify again.", "error");
     setCaptchaValid(false);
   }, []);
+
   const handleRecaptchaError = useCallback(() => {
-    setAlertMessage("Something went wrong, please try again later.");
-    setShowModal(true);
+    notifyUser("Something went wrong, please try again later.", "error");
     setCaptchaValid(false);
   }, []);
 
@@ -53,6 +59,7 @@ export default function ContactForm() {
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onBlur" });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.handleRecaptcha = handleRecaptcha;
@@ -74,7 +81,7 @@ export default function ContactForm() {
   }: {
     result: Awaited<ReturnType<typeof captchaValidation>>;
   }) {
-    setCaptchaValid(result.data?.success ?? false);
+    setCaptchaValid(result.data?.data?.success);
   }
 
   async function feedbackSuccess({
@@ -83,41 +90,30 @@ export default function ContactForm() {
     result: Awaited<ReturnType<typeof submitForm>>;
   }) {
     setIsSubmitting(false);
-    const status = result.data?.status;
-    let message = "";
-    switch (status) {
-      case ResponseCodes.SUCCESS:
-        message =
-          "Thank you! We have recieved your message and will be in touch as needed.";
-        (document.getElementById("submission-form") as HTMLFormElement).reset();
-        grecaptcha.reset();
-        break;
-      case ResponseCodes.CLIENT_ERROR:
-        message =
-          "Hmmm, there seems to be something wrong with your form. Can you double check the details?";
-        break;
-      default:
-        message =
-          result.data?.statusText ??
-          "Something went wrong, please try again later.";
-        break;
+    let message =
+      "Thank you! We have recieved your message and will be in touch as needed.";
+    let type = "success";
+    if (result.data?.error) {
+      message = "Something went wrong, please try again later.";
+      type = "error";
+    } else {
+      (document.getElementById("submission-form") as HTMLFormElement).reset();
+      grecaptcha.reset();
     }
-    setAlertMessage(message);
-    setShowModal(true);
+    notifyUser(message, type);
   }
 
   async function handleFormSubmit(formData: FieldValues): Promise<void> {
     if (!captchaValid) {
-      setAlertMessage("Please verify the captcha before submitting");
-      setShowModal(true);
+      notifyUser("Please verify the captcha before submitting", "error");
       return;
     }
     setIsSubmitting(true);
     submitFeedback({
-      email: formData["email"],
-      message: formData["message"],
-      name: formData["name"],
-      telephone: formData["telephone"],
+      email: formData["email"].trim(),
+      message: formData["message"].trim(),
+      name: formData["name"].trim(),
+      telephone: formData["telephone"].trim(),
     });
   }
 
@@ -127,13 +123,6 @@ export default function ContactForm() {
       className="sm:p-4 mb-3 bg-light text-xl"
       onSubmit={handleSubmit(handleFormSubmit)}
     >
-      <AlertModal
-        content={alertMessage}
-        modalIsOpen={showModal}
-        closeModal={() => {
-          setShowModal(false);
-        }}
-      />
       <div>
         <label className="text-white" htmlFor="name">
           Full Name*
@@ -144,10 +133,10 @@ export default function ContactForm() {
             maxLength={50}
             {...register("name", { required: true, maxLength: 50 })}
           />
-          {errors.name && errors.name.type === "required" && (
+          {errors.name?.type === "required" && (
             <span className="text-red-600">Please enter your name.</span>
           )}
-          {errors.name && errors.name.type === "maxLength" && (
+          {errors.name?.type === "maxLength" && (
             <span className="text-red-600">
               You have entered a name that is too long, is there a shorter name
               we can refer to you with?
@@ -169,16 +158,16 @@ export default function ContactForm() {
               pattern: emailPattern,
             })}
           />
-          {errors.email && errors.email.type === "required" && (
+          {errors.email?.type === "required" && (
             <span className="text-red-600">Please enter your email.</span>
           )}
-          {errors.email && errors.email.type === "maxLength" && (
+          {errors.email?.type === "maxLength" && (
             <span className="text-red-600">
               You have entered an email that is too long, is there a shorter
               email we can reach you at?
             </span>
           )}
-          {errors.email && errors.email.type === "pattern" && (
+          {errors.email?.type === "pattern" && (
             <span className="text-red-600">
               Hmmm... This doesn&apos;t look like a valid email.
             </span>
@@ -196,7 +185,7 @@ export default function ContactForm() {
               pattern: phoneNumberRegex,
             })}
           />
-          {errors.telephone && errors.telephone.type === "pattern" && (
+          {errors.telephone?.type === "pattern" && (
             <span className="text-red-600">
               Your phone number must have exactly 10 digits (numbers only, no
               letters or other characters).
@@ -204,7 +193,14 @@ export default function ContactForm() {
           )}
         </label>
       </div>
-      <div>
+      <div className="relative">
+        <span
+          className={`absolute bottom-0 right-0 ${
+            textareaLength < 20 ? "text-red-500" : "text-gray-500"
+          } text-sm`}
+        >
+          {textareaLength} / 500
+        </span>
         <label htmlFor="message" className="text-white">
           Message*
           <textarea
@@ -217,21 +213,24 @@ export default function ContactForm() {
               minLength: 20,
               maxLength: 500,
             })}
+            onChange={(event) => {
+              setTextareaLength(event.target.value.trim().length);
+            }}
           ></textarea>
-          {errors.message && errors.message.type === "required" && (
+          {errors.message?.type === "required" && (
             <span className="text-red-600">Please enter your message.</span>
           )}
-          {errors.message && errors.message.type === "maxLength" && (
+          {errors.message?.type === "maxLength" && (
             <span className="text-red-600">
               Your message seems to be too long, you&apos;ve exceeded the 500
               character limit. Please shorten your message. Perhaps you&apos;d
               like to visit us at our centre for a more fruitful discussion.
             </span>
           )}
-          {errors.message && errors.message.type === "minLength" && (
+          {errors.message?.type === "minLength" && (
             <span className="text-red-600">
               Your message doesn&apos;t seem to be long enough. Please provide
-              us with some more detail (minimum 20 characters).
+              us with some more detail.
             </span>
           )}
         </label>
@@ -239,13 +238,15 @@ export default function ContactForm() {
       <div className="text-center mt-5">
         <div
           className="g-recaptcha"
-          data-sitekey="6Lf7ItMrAAAAAMNWKG-Fi0Kzj6ZGKUiVAomT_1zi"
+          data-sitekey={captchaPublicKey}
           data-callback="handleRecaptcha"
           data-expired-callback="handleRecaptchaExpired"
           data-error-callback="handleRecaptchaError"
         ></div>
         <button
-          className={`border-0 text-xl p-3 mt-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)] disabled:bg-green-950 hover:disabled:cursor-not-allowed ${isSubmitting ? "submitting" : ""}`}
+          className={`border-0 text-xl p-3 mt-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)] disabled:bg-green-950 hover:disabled:cursor-not-allowed ${
+            isSubmitting && "submitting"
+          }`}
           type="submit"
           disabled={
             Object.keys(errors).length > 0 || isSubmitting || !captchaValid
@@ -254,6 +255,7 @@ export default function ContactForm() {
           {isSubmitting ? "Submitting" : "Submit"}
         </button>
       </div>
+      <ToastContainer transition={Slide} autoClose={5000} />
     </form>
   );
 }

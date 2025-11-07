@@ -48,7 +48,6 @@ export default async function Home() {
     currentEvents = events.data || [];
   } catch (error) {
     console.error(error);
-    alert("There was an error while fetching data for the home page.");
   }
 
   return (

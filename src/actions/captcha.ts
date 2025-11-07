@@ -1,6 +1,5 @@
 "use server";
 import { createSafeActionClient } from "next-safe-action";
-import { ResponseCodes } from "../app/enums/responseCodes";
 import { Captcha } from "../app/schemas/captcha";
 const SERVER_MISCONFIGURATION = "Server misconfiguration";
 const INVALID_CAPTCHA = "Invalid Captcha";
@@ -21,32 +20,22 @@ export const captchaValidation = actionClient
             secret: process.env.RECAPTCHA_SECRET_KEY,
             response: parsedInput.token,
           }),
-        },
+        }
       );
       const verification = await response.json();
+
       if (!verification?.success) {
         throw new Error(INVALID_CAPTCHA);
       }
       return {
-        success: true,
-        score: verification.score,
-        action: verification.action,
-        error: "",
-        status: 200,
-        statusText: "Captcha Verified Successfully",
+        data: { success: verification.success },
+        error: null,
       };
     } catch (error) {
       console.error(error);
       return {
-        success: false,
-        score: 0,
-        action: "",
-        error: error instanceof Error ? error.message : String(error),
-        status:
-          error instanceof Error && error.message === INVALID_CAPTCHA
-            ? ResponseCodes.CLIENT_ERROR
-            : ResponseCodes.SERVER_ERROR,
-        statusText:
+        data: null,
+        error:
           error instanceof Error && error.message === INVALID_CAPTCHA
             ? "The Captcha is invalid"
             : "Internal Server Error",

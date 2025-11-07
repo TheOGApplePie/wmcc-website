@@ -2,6 +2,7 @@ import ContactForm from "../../components/contactForm";
 import Image from "next/image";
 export default function Contact() {
   const apiKey = process.env.MAPS_API;
+  const captchaPublicKey = process.env.RECAPTCHA_SITE_KEY;
 
   const googleMapsURL =
     "https://www.google.com/maps/embed/v1/place?key=" +
@@ -28,19 +29,19 @@ export default function Contact() {
               />
               20 Innovation Dr, Dundas, ON L9H 7P3
             </span>
-            {!apiKey ? (
-              <div>Loading...</div>
-            ) : (
+            {apiKey ? (
               <iframe
                 title="googlemaps"
                 className="w-full"
                 src={googleMapsURL}
               ></iframe>
+            ) : (
+              <div>Loading...</div>
             )}
           </div>
         </div>
         <div className="p-5 h-full rounded-b-lg sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
-          <ContactForm />
+          <ContactForm captchaPublicKey={captchaPublicKey ?? ""} />
         </div>
       </div>
     </div>
