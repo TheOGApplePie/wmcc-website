@@ -15,7 +15,7 @@ export const fetchEvents = actionClient
       const events = await supabase
         .from("events")
         .select(
-          "id, poster_url,poster_alt,title,start_date, end_date, location, registration_link"
+          "id, poster_url,poster_alt,title,start_date, end_date, location, call_to_action_link, call_to_action_caption",
         )
         .gte("start_date", start.toISOString())
         .lte("start_date", end.toISOString())
