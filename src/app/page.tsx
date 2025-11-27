@@ -21,7 +21,8 @@ export interface UpcomingEvent {
   title: string;
   start_date: string;
   location: string;
-  registration_link: string;
+  call_to_action_caption: string;
+  call_to_action_link: string;
 }
 export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
@@ -33,13 +34,13 @@ export default async function Home() {
     const anouncements = await supabase
       .from("announcements")
       .select(
-        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
+        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption",
       )
       .gt("expires_at", today.toISOString());
     const events = await supabase
       .from("events")
       .select(
-        "id, poster_url,poster_alt,title,start_date, location, registration_link"
+        "id, poster_url,poster_alt,title,start_date, location, call_to_action_caption, call_to_action_link",
       )
       .gte("start_date", today.toISOString())
       .order("start_date", { ascending: true });
