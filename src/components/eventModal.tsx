@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import dayjs from "dayjs";
 import { EventImpl } from "@fullcalendar/core/internal";
+import Link from "next/link";
 
 interface EventModalProps {
   event: EventImpl | null;
@@ -17,6 +18,7 @@ export default function EventModal({
   if (!modalIsOpen || !event) {
     return null;
   }
+  // console.log(event.extendedProps);
   const startDate = dayjs(event.extendedProps.start_date).format(
     "dddd, MMMM D, YYYY h:mm A"
   );
@@ -29,7 +31,11 @@ export default function EventModal({
 
         <h1 className="text-3xl">{event.title}</h1>
       </div>
-      <div className="grid justify-start gap-4 grid-cols-4">
+      <div
+        className={`grid justify-start gap-4 ${
+          event.extendedProps.poster_url ? "grid-cols-4" : "grid-cols-2"
+        }`}
+      >
         {event.extendedProps.poster_url && (
           <div className="col-span-2">
             <Image
@@ -47,6 +53,7 @@ export default function EventModal({
           <h2 className="py-4 text-2xl">Location and time</h2>
           <p>{startDate}</p>
           <p>{event.extendedProps.location}</p>
+          <Link href={`/events/${event.id}`}>Click here to learn more</Link>
         </div>
       </div>
     </div>

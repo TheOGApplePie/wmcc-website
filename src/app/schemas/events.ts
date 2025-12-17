@@ -4,6 +4,9 @@ export const EventParams = z.object({
   start: z.coerce.date(),
   end: z.coerce.date(),
 });
+export const OneEventParams = z.object({
+  id: z.coerce.number(),
+});
 
 export interface WMCCEvent {
   id: string;
@@ -14,4 +17,6 @@ export interface WMCCEvent {
   end_date: string | Date;
   location: string;
   registration_link?: string;
+  description: string;
+  gallery_url?: string;
 }
