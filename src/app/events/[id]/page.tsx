@@ -79,6 +79,7 @@ export default async function EventDetails({
                 ></iframe>
                 <p>
                   {new Date(event.start_date).toLocaleString("en-CA", {
+                    timeZone: "America/New_York",
                     dateStyle: "full",
                     timeStyle: "medium",
                   })}

@@ -29,7 +29,8 @@ export default function EventPill({
           <p className="px-2 text-lg">{upcomingEvent.title}</p>
           <p className="px-2 text-lg">{upcomingEvent.location}</p>
           <p className="px-2 text-lg">
-            {eventDate.toLocaleString("en-CA", {
+            {new Date(eventDate).toLocaleString("en-CA", {
+              timeZone: "America/New_York",
               dateStyle: "full",
               timeStyle: "medium",
             })}

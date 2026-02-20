@@ -51,6 +51,7 @@ export default function EventModal({
           <p>{event.extendedProps.location}</p>
           <p>
             {new Date(event.extendedProps.start_date).toLocaleString("en-CA", {
+              timeZone: "America/New_York",
               dateStyle: "full",
               timeStyle: "medium",
             })}
