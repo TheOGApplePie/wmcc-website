@@ -188,7 +188,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
   } else {
     return (
       <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center">
-        <p className="text-white text-4xl">
+        <p className="text-white text-4xl text-center">
           There are no announcements just yet. But stay tuned!
         </p>
       </div>

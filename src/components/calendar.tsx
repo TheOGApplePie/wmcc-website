@@ -87,7 +87,7 @@ export default function Calendar() {
 
   return (
     <>
-      {calendarLoading ? <Loading></Loading> : <></>}
+      {calendarLoading && <Loading></Loading>}
       <EventModal
         event={event}
         modalIsOpen={modalIsOpen}
@@ -104,6 +104,7 @@ export default function Calendar() {
         headerToolbar={toolbarHeader}
         height={"calc(100dvh - 100px)"}
         events={events}
+        eventClassNames={"hover:cursor-pointer"}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}
         windowResizeDelay={100}

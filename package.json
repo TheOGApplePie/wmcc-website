@@ -9,12 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^0.2.3",
     "@fullcalendar/core": "^6.1.18",
     "@fullcalendar/daygrid": "^6.1.18",
     "@fullcalendar/list": "^6.1.19",
     "@fullcalendar/react": "^6.1.18",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@supabase/ssr": "^0.6.1",
     "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.5",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@microsoft/microsoft-graph-types": "^2.43.1",
     "@types/grecaptcha": "^3.0.9",
     "@types/node": "20.19.10",
     "@types/react": "19.1.9",

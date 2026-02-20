@@ -18,15 +18,15 @@ export default function Header() {
       title: "Home",
     },
     {
-      link: "events",
+      link: "/events",
       title: "Events",
     },
     {
-      link: "about",
+      link: "/about",
       title: "About WMCC",
     },
     {
-      link: "contact",
+      link: "/contact",
       title: "Contact",
     },
     {
@@ -48,7 +48,7 @@ export default function Header() {
   };
 
   useEffect(() => {
-    setWindowSize({ width: window.innerHeight, height: window.innerHeight });
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize, { passive: true });
 
@@ -65,7 +65,7 @@ export default function Header() {
           scrollPosition <= windowSize.height - 120 && pathname === "/"
             ? "background-gradient"
             : "bg-main-colour-blue " +
-              (!showDropdownMenu && "shadow-[0px_0px_1rem_#000]")
+              (showDropdownMenu ? "" : "shadow-[0px_0px_1rem_#000]")
         } relative flex justify-between px-6 py-2 z-10`}
       >
         <div>

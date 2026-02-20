@@ -11,7 +11,9 @@ export default function EventPill({
   return (
     <div className="border rounded-xl p-3 min-h-[325px]">
       <div
-        className={`grid grid-cols-1 ${upcomingEvent.poster_url && "sm:grid-cols-2"} gap-4 event-pill items-center`}
+        className={`grid grid-cols-1 ${
+          upcomingEvent.poster_url && "sm:grid-cols-2"
+        } gap-4 max-w-[450px] sm:w-[450px] items-center`}
       >
         {upcomingEvent.poster_url && (
           <div className="col-span-1">
@@ -27,13 +29,9 @@ export default function EventPill({
           <p className="px-2 text-lg">{upcomingEvent.title}</p>
           <p className="px-2 text-lg">{upcomingEvent.location}</p>
           <p className="px-2 text-lg">
-            {eventDate.toLocaleString(undefined, {
-              hour12: true,
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
+            {eventDate.toLocaleString("en-CA", {
+              dateStyle: "full",
+              timeStyle: "medium",
             })}
           </p>
           {upcomingEvent.call_to_action_link && (

@@ -34,15 +34,16 @@ export default async function Home() {
     const anouncements = await supabase
       .from("announcements")
       .select(
-        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption",
+        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
       )
       .gt("expires_at", today.toISOString());
     const events = await supabase
       .from("events")
       .select(
-        "id, poster_url,poster_alt,title,start_date, location, call_to_action_caption, call_to_action_link",
+        "id, poster_url,poster_alt,title,start_date, location, call_to_action_caption, call_to_action_link"
       )
       .gte("start_date", today.toISOString())
+      .limit(5)
       .order("start_date", { ascending: true });
 
     slides = anouncements.data || [];

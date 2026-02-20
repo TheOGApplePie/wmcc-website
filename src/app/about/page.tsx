@@ -1,19 +1,12 @@
 import Image from "next/image";
 export default function About() {
   const team = [
-    { title: "Events Coordinator", name: "Br Taanzeel ur Rehman" },
-    { title: "Marketing Lead", name: "Br Danial Ali" },
-    { title: "Brothers Program Lead", name: "Br Abdullahi Hussein" },
-    { title: "Sisters Program Lead", name: "Sr Rabia Karim" },
-    {
-      title: "Family and Parenting Programs Coordinator",
-      name: "Sr Shazia Bashir",
-    },
-    { title: "Brothers Outreach Lead", name: "Br Anwar Rehman" },
-    { title: "Sisters Outreach Lead", name: "Sr Sumaira Waqar" },
-    { title: "HR Lead", name: "Br Muhammad Mubashir Hasan" },
-    { title: "IT Lead", name: "Br Shariq" },
     { title: "Executive Director", name: "Br Ahmed Ashraf" },
+    { title: "IT & Marketing Lead", name: "Br Danial Ali" },
+    { title: "Weekend School Lead", name: "Br Abdullahi Hussein" },
+    { title: "Events Team Member", name: "Br Mehdi Dassaine" },
+    { title: "Events Team Member", name: "Br Aadil Reshi" },
+    { title: "Events Team Member", name: "Br Fahad Jilani" },
   ];
   const boardOfDirectors = [
     { name: "Br Ahmed Jamil", title: "President" },
@@ -30,14 +23,13 @@ export default function About() {
         </div>
       </section>
       <section className="p-4">
-        <h2 className="p-4 text-4xl text-center">Who are the WMCC?</h2>
         <p className="text-xl">
-          We are the WMCC! Rooted in strong Islamic values, the Waterdown Muslim
-          Community Centre is here to welcome and support families in Waterdown
-          and the surrounding neighbourhoods. We strive to serve with compassion
-          and inclusivity — offering charitable, educational, spiritual, and
-          social programs for youth, seniors, women, and men. At WMCC, we live
-          and teach Islam holistically — nurturing faith, building community,
+          Rooted in strong Islamic values, the Waterdown Muslim Community Centre
+          is here to welcome and support families in Waterdown and the
+          surrounding neighbourhoods. We strive to serve with compassion and
+          inclusivity — offering charitable, educational, spiritual, and social
+          programs for youth, seniors, women, and men. At WMCC, we live and
+          teach Islam holistically — nurturing faith, building community,
           clearing misconceptions, and inspiring growth through learning and
           connection.
         </p>
