@@ -111,7 +111,7 @@ export default async function EventDetails({
           })
         ) : (
           <div>
-            <h3>We don't have any memories to share just yet.</h3>
+            <h3>We don&apos;t have any memories to share just yet.</h3>
           </div>
         )}
       </div>
