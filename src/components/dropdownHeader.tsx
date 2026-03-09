@@ -19,7 +19,7 @@ export default function DropdownHeader({
           key={`dropdown-` + link.title}
           className="p-2 border-t border-t-black"
         >
-          <a className="w-full" href={link.link}>
+          <a className="block" href={link.link}>
             {link.title}
           </a>
         </li>
