@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com https://masjidbox.com;
     style-src 'self' 'unsafe-inline';
-    frame-src https://www.google.com https://masjidbox.com;
+    frame-src https://www.google.com https://masjidbox.com https://www.zeffy.com;
     connect-src 'self' https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io;
     img-src 'self' https://gkpctbvyswcfccogoepl.supabase.co;
     font-src 'self' https://fonts.googleapis.com;

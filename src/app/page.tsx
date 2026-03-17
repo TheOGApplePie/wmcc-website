@@ -34,13 +34,13 @@ export default async function Home() {
     const anouncements = await supabase
       .from("announcements")
       .select(
-        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption"
+        "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption",
       )
       .gt("expires_at", today.toISOString());
     const events = await supabase
       .from("events")
       .select(
-        "id, poster_url,poster_alt,title,start_date, location, call_to_action_caption, call_to_action_link"
+        "id, poster_url,poster_alt,title,start_date, location, call_to_action_caption, call_to_action_link",
       )
       .gte("start_date", today.toISOString())
       .limit(5)
@@ -133,7 +133,8 @@ export default async function Home() {
           </div>
           <div className="sm:p-8 flex items-center justify-center">
             <iframe
-              src="https://app.irm.io/wmcc.ca/operations"
+              // src="https://app.irm.io/wmcc.ca/operations"
+              src="https://www.zeffy.com/en-CA/donation-form/wmcc-ramadan-2026-fundraiser"
               width={850}
               height={600}
               title="WMCC Operations Donation"
