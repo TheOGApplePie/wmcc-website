@@ -134,7 +134,7 @@ export default async function Home() {
           <div className="sm:p-8 flex items-center justify-center">
             <iframe
               // src="https://app.irm.io/wmcc.ca/operations"
-              src="https://www.zeffy.com/en-CA/donation-form/wmcc-ramadan-2026-fundraiser"
+              src="https://www.zeffy.com/en-CA/donation-form/donate-to-support-our-community-centre"
               width={850}
               height={600}
               title="WMCC Operations Donation"
