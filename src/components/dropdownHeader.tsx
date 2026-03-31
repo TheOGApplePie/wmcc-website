@@ -29,7 +29,7 @@ export default function DropdownHeader({
           key="dropdown-donate"
           rel="noopener noreferrer"
           // href="https://app.irm.io/wmcc.ca/operations"
-          href="https://www.zeffy.com/en-CA/donation-form/wmcc-ramadan-2026-fundraiser"
+          href="https://www.zeffy.com/en-CA/donation-form/donate-to-support-our-community-centre"
           target="_blank"
         >
           Donate
