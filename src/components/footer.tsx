@@ -56,7 +56,7 @@ export default function Footer() {
             alt="wmcc instagram"
           />
         </a>
-        <a href="https://www.instagram.com/wmcc.ca/">
+        <a href="https://chat.whatsapp.com/H2O1IFhP7FjIWXik8z7NRH">
           <Image
             className="inline-block mx-2"
             height={30}
