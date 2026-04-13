@@ -1,13 +1,5 @@
 import Image from "next/image";
 export default function About() {
-  const team = [
-    { title: "Executive Director", name: "Br Ahmed Ashraf" },
-    { title: "IT & Marketing Lead", name: "Br Danial Ali" },
-    { title: "Weekend School Lead", name: "Br Abdullahi Hussein" },
-    { title: "Events Team Member", name: "Br Mehdi Dassaine" },
-    { title: "Events Team Member", name: "Br Aadil Reshi" },
-    { title: "Events Team Member", name: "Br Fahad Jilani" },
-  ];
   const boardOfDirectors = [
     { name: "Br Ahmed Jamil", title: "President" },
     { name: "Br Irshad Rashid", title: "Secretary" },
@@ -40,30 +32,6 @@ export default function About() {
         </h2>
         <div className="text-sm sm:text-lg p-4 grid sm:grid-cols-3">
           {boardOfDirectors.map((member) => {
-            return (
-              <div
-                className="flex flex-col items-center text-center"
-                key={member.name}
-              >
-                <Image
-                  src="/avatar.png"
-                  alt={member.name}
-                  width={200}
-                  height={200}
-                />
-                <p className="text-base sm:text-xl">{member.title}</p>
-                <p className="text-lg sm:text-2xl">{member.name}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-      <section>
-        <h2 className="p-4 text-4xl text-center">
-          Meet the team behind the WMCC
-        </h2>
-        <div className="text-sm sm:text-lg p-4 grid grid-cols-2 sm:grid-cols-4">
-          {team.map((member) => {
             return (
               <div
                 className="flex flex-col items-center text-center"
