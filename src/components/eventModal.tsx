@@ -49,10 +49,10 @@ export default function EventModal({
             <h2 className="py-4">Location and time</h2>
             <p className="">{event.extendedProps.location}</p>
             <p>
-              {new Date(event.extendedProps.start_date).toLocaleString(
+              {(event.start ?? new Date(event.extendedProps.start_date as string)).toLocaleString(
                 "en-CA",
                 {
-                  timeZone: "America/New_York",
+                  timeZone: "America/Toronto",
                   dateStyle: "full",
                   timeStyle: "medium",
                 },
@@ -60,7 +60,9 @@ export default function EventModal({
             </p>
           </div>
           <button className="p-3 rounded-xl text-xl hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-            <Link href={`/events/${event.id}`}>Click here to learn more</Link>
+            <Link href={`/events/${event.extendedProps.navigation_slug}`}>
+              Click here to learn more
+            </Link>
           </button>
         </div>
       </div>

@@ -1,6 +1,10 @@
 "use server";
 import { createSafeActionClient } from "next-safe-action";
-import { EventParams, OneEventParams, RecurringEventParams } from "../app/schemas/events";
+import {
+  EventParams,
+  FetchRecurringBaseEventsParams,
+  OneEventParams,
+} from "../app/schemas/events";
 import { createClient } from "../utils/supabase/server";
 
 const actionClient = createSafeActionClient();
@@ -15,8 +19,9 @@ export const fetchEvents = actionClient
       const events = await supabase
         .from("events")
         .select(
-          "id, poster_url, poster_alt, title, start_date, end_date, location, call_to_action_link, call_to_action_caption, description",
+          "id, navigation_slug, poster_url, poster_alt, title, start_date, end_date, location, call_to_action_link, call_to_action_caption, description",
         )
+        .is("recurrence_rule_id", null)
         .gte("start_date", start.toISOString())
         .lte("start_date", end.toISOString())
         .order("start_date", { ascending: true });
@@ -36,42 +41,29 @@ export const fetchEvents = actionClient
     }
   });
 
-export const fetchRecurringEventDetails = actionClient
-  .inputSchema(RecurringEventParams)
-  .action(async ({ parsedInput }) => {
+export const fetchRecurringBaseEvents = actionClient
+  .inputSchema(FetchRecurringBaseEventsParams)
+  .action(async () => {
     try {
-      const { recurrence_rule_id } = parsedInput;
       const supabase = await createClient();
-      const now = new Date().toISOString();
-      const [next, last] = await Promise.all([
-        supabase
-          .from("events")
-          .select("id, start_date, end_date")
-          .eq("recurrence_rule_id", recurrence_rule_id)
-          .gte("start_date", now)
-          .order("start_date", { ascending: true })
-          .limit(1)
-          .single(),
-        supabase
-          .from("events")
-          .select("id, start_date, end_date")
-          .eq("recurrence_rule_id", recurrence_rule_id)
-          .lt("start_date", now)
-          .order("start_date", { ascending: false })
-          .limit(1)
-          .single(),
-      ]);
+      const events = await supabase
+        .from("events")
+        .select(
+          "id, navigation_slug, poster_url, poster_alt, title, start_date, end_date, location, call_to_action_link, call_to_action_caption, description, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position, until, count, exdates)",
+        )
+        .not("recurrence_rule_id", "is", null);
+      if (events.error) {
+        throw events.error;
+      }
       return {
         error: null,
-        nextOccurrence: next.data ?? null,
-        lastOccurrence: last.data ?? null,
+        data: events.data,
       };
     } catch (error) {
       console.error(error);
       return {
         error: error instanceof Error ? error.message : String(error),
-        nextOccurrence: null,
-        lastOccurrence: null,
+        data: [],
       };
     }
   });
@@ -80,14 +72,14 @@ export const fetchOneEvent = actionClient
   .inputSchema(OneEventParams)
   .action(async ({ parsedInput }) => {
     try {
-      const id = parsedInput.id;
+      const slug = parsedInput.slug;
       const supabase = await createClient();
       const events = await supabase
         .from("events")
         .select(
-          "id, poster_url, poster_alt, title, start_date, end_date, location, call_to_action_link, call_to_action_caption, description, gallery_url, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position)",
+          "id, navigation_slug, poster_url, poster_alt, title, start_date, end_date, location, call_to_action_link, call_to_action_caption, description, gallery_url, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position, until, count, exdates)",
         )
-        .eq("id", id);
+        .eq("navigation_slug", slug);
       if (events.error) {
         throw events.error;
       }

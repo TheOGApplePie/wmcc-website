@@ -5,11 +5,9 @@ export const EventParams = z.object({
   end: z.coerce.date(),
 });
 export const OneEventParams = z.object({
-  id: z.coerce.number(),
+  slug: z.string(),
 });
-export const RecurringEventParams = z.object({
-  recurrence_rule_id: z.number(),
-});
+export const FetchRecurringBaseEventsParams = z.object({});
 
 export interface WMCCEvent {
   id: string;

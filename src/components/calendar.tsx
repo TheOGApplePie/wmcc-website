@@ -2,17 +2,68 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
+import rrulePlugin from "@fullcalendar/rrule";
+import luxonPlugin from "@fullcalendar/luxon3";
 import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import { useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
 import Loading from "./loading";
 import { EventImpl } from "@fullcalendar/core/internal";
-import { fetchEvents } from "../actions/events";
-import { WMCCEvent } from "../app/schemas/events";
+import { fetchEvents, fetchRecurringBaseEvents } from "../actions/events";
+
+function toFloatingToronto(isoDate: string): string {
+  const date = new Date(isoDate);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
+}
+
+function buildRRuleObj(
+  dtstart: string,
+  rule: {
+    frequency: string;
+    interval?: number | null;
+    by_weekdays?: string[] | null;
+    by_month_day?: number | null;
+    by_set_position?: number[] | null;
+    until?: string | null;
+    count?: number | null;
+  },
+): Record<string, unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const options: Record<string, any> = {
+    freq: rule.frequency.toUpperCase(),
+    dtstart: toFloatingToronto(dtstart),
+  };
+  if (rule.interval && rule.interval > 1) options.interval = rule.interval;
+  if (rule.by_weekdays?.length) options.byweekday = rule.by_weekdays;
+  if (rule.by_month_day) options.bymonthday = rule.by_month_day;
+  if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
+  if (rule.until) options.until = toFloatingToronto(rule.until);
+  if (rule.count) options.count = rule.count;
+  return options;
+}
+
+function calcDuration(start: string, end: string): string {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
 
 export default function Calendar() {
   const [event, setEvent] = useState<EventImpl | null>(null);
-  const [events, setEvents] = useState<EventInput[]>([]);
+  const [regularEvents, setRegularEvents] = useState<EventInput[]>([]);
+  const [recurringEvents, setRecurringEvents] = useState<EventInput[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [toolbarHeader, setToolbarHeader] = useState({
@@ -59,6 +110,31 @@ export default function Calendar() {
     };
   }, []);
 
+  useEffect(() => {
+    fetchRecurringBaseEvents({}).then((result) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any[] = result?.data?.data ?? [];
+      const rruleInputs: EventInput[] = data
+        .map((ev) => {
+          const rule = Array.isArray(ev.recurrence_rule)
+            ? ev.recurrence_rule[0]
+            : ev.recurrence_rule;
+          if (!rule) return null;
+          return {
+            ...ev,
+            rrule: buildRRuleObj(ev.start_date as string, rule),
+            duration: calcDuration(
+              ev.start_date as string,
+              ev.end_date as string,
+            ),
+            exdate: rule.exdates?.map(toFloatingToronto) ?? [],
+          };
+        })
+        .filter(Boolean) as EventInput[];
+      setRecurringEvents(rruleInputs);
+    });
+  }, []);
+
   function handleEventClick(event: EventClickArg) {
     setEvent(event.event);
     setModalIsOpen(true);
@@ -67,21 +143,14 @@ export default function Calendar() {
   async function handleDatesSet(args: { start: Date; end: Date }) {
     const { start, end } = args;
     setCalendarLoading(true);
-    const fetchedEvents = await fetchEvents({
-      start,
-      end,
-    });
-    const data = fetchedEvents.data?.data;
-
-    const mappedEvents = data?.map((event: WMCCEvent) => {
-      return {
-        ...event,
-        start: event.start_date,
-        end: event.end_date,
-      };
-    });
-
-    setEvents(mappedEvents?.length ? mappedEvents : []);
+    const fetchedEvents = await fetchEvents({ start, end });
+    const data = fetchedEvents.data?.data ?? [];
+    const mappedEvents: EventInput[] = data.map((ev) => ({
+      ...ev,
+      start: ev.start_date,
+      end: ev.end_date,
+    }));
+    setRegularEvents(mappedEvents);
     setCalendarLoading(false);
   }
 
@@ -96,14 +165,14 @@ export default function Calendar() {
 
       <FullCalendar
         ref={calendarRef}
-        plugins={[dayGridPlugin, listPlugin]}
+        plugins={[dayGridPlugin, listPlugin, rrulePlugin, luxonPlugin]}
         loading={(loading) => {
           setCalendarLoading(loading);
         }}
         initialView="dayGridMonth"
         headerToolbar={toolbarHeader}
         height={"calc(100dvh - 100px)"}
-        events={events}
+        events={[...recurringEvents, ...regularEvents]}
         eventClassNames={"hover:cursor-pointer"}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}
