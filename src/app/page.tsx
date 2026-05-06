@@ -119,7 +119,9 @@ export default async function Home() {
     slides = announcementsRes.data || [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recurringUpcoming: UpcomingEvent[] = (recurringRes.data ?? ([] as any[]))
+    const recurringUpcoming: UpcomingEvent[] = (
+      recurringRes.data ?? ([] as any[])
+    )
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .flatMap((event: any) =>
         getNextOccurrences(event, today, 5).map((next) => ({
@@ -176,7 +178,7 @@ export default async function Home() {
                 WMCC offers charitable, educational, spiritual, and social
                 programs designed to nurture personal growth, strengthen
                 families, and build a vibrant, faith-centered community—all
-                guided by the teachings of the Qur'an and Sunnah.
+                guided by the teachings of the Qur&apos;an and Sunnah.
               </p>
               <p className="text-md md:text-2xl">
                 We believe in the power of togetherness. By fostering meaningful
@@ -194,7 +196,10 @@ export default async function Home() {
           {currentEvents?.length ? (
             <div className="flex flex-col sm:flex-row sm:overflow-x-scroll py-10">
               {currentEvents?.map((upcomingEvent) => (
-                <div key={`${upcomingEvent.id}-${upcomingEvent.start_date}`} className="m-2">
+                <div
+                  key={`${upcomingEvent.id}-${upcomingEvent.start_date}`}
+                  className="m-2"
+                >
                   <EventPill upcomingEvent={upcomingEvent}></EventPill>
                 </div>
               ))}
