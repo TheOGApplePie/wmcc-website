@@ -21,7 +21,7 @@ export default function EventPill({
               height={300}
               width={200}
               src={upcomingEvent.poster_url}
-              alt={upcomingEvent.poster_alt}
+              alt={upcomingEvent.poster_alt ?? ""}
             />
           </div>
         )}

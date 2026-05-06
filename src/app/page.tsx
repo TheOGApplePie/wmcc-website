@@ -4,7 +4,8 @@ import EventPill from "../components/eventPill";
 import Image from "next/image";
 import { createClient } from "../utils/supabase/server";
 import { headers } from "next/headers";
-import { RRule, Weekday } from "rrule";
+import { RRule, Weekday, Options } from "rrule";
+import { RecurrenceRule, RecurringBaseEvent } from "../app/schemas/events";
 
 const FREQ_MAP: Record<string, number> = {
   DAILY: RRule.DAILY,
@@ -23,25 +24,23 @@ const WEEKDAY_MAP: Record<string, Weekday> = {
   SU: RRule.SU,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getNextOccurrences(event: any, now: Date, limit = 5): Date[] {
+function getNextOccurrences(event: RecurringBaseEvent, now: Date, limit = 5): Date[] {
   try {
-    const rule = Array.isArray(event.recurrence_rule)
+    const rule: RecurrenceRule | null = Array.isArray(event.recurrence_rule)
       ? event.recurrence_rule[0]
       : event.recurrence_rule;
     if (!rule) return [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const options: Record<string, any> = {
+    const options: Partial<Options> = {
       freq: FREQ_MAP[rule.frequency.toUpperCase()] ?? RRule.WEEKLY,
-      dtstart: new Date(event.start_date as string),
+      dtstart: new Date(event.start_date),
       tzid: "America/Toronto",
     };
     if (rule.interval && rule.interval > 1) options.interval = rule.interval;
     if (rule.by_weekdays?.length) {
       options.byweekday = rule.by_weekdays
-        .map((d: string) => WEEKDAY_MAP[d.toUpperCase()])
-        .filter(Boolean);
+        .map((d) => WEEKDAY_MAP[d.toUpperCase()])
+        .filter((w): w is Weekday => w !== undefined);
     }
     if (rule.by_month_day) options.bymonthday = rule.by_month_day;
     if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
@@ -76,13 +75,13 @@ export interface Announcement {
 }
 export interface UpcomingEvent {
   id: number;
-  poster_url: string;
-  poster_alt: string;
+  poster_url: string | null;
+  poster_alt: string | null;
   title: string;
   start_date: string;
   location: string;
-  call_to_action_caption: string;
-  call_to_action_link: string;
+  call_to_action_caption: string | null;
+  call_to_action_link: string | null;
 }
 export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
@@ -118,12 +117,9 @@ export default async function Home() {
 
     slides = announcementsRes.data || [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recurringUpcoming: UpcomingEvent[] = (
-      recurringRes.data ?? ([] as any[])
-    )
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .flatMap((event: any) =>
+    const recurringData: RecurringBaseEvent[] = (recurringRes.data ?? []) as RecurringBaseEvent[];
+    const recurringUpcoming: UpcomingEvent[] = recurringData
+      .flatMap((event) =>
         getNextOccurrences(event, today, 5).map((next) => ({
           id: event.id,
           poster_url: event.poster_url,

@@ -44,10 +44,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
 
   // Auto-advance slides
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (content.length > 1) nextSlide();
-    }, 5000);
-
+    const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
   }, [nextSlide]);
 

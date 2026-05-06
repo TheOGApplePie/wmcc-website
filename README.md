@@ -22,6 +22,7 @@ When you are working on a change, keep your changes in a separate branch and cre
 - **Calendar**: FullCalendar v6 (`dayGrid`, `list`, `rrule`, `luxon3` plugins)
 - **Recurring events**: `rrule` v2 for client-side occurrence generation and server-side next/last occurrence computation
 - **Microsoft Graph**: Gallery images are fetched from a SharePoint/OneDrive folder via the Microsoft Graph API
+- **TypeScript**: Strict mode enabled. Shared DB-facing types (`RecurrenceRule`, `RecurringBaseEvent`, `WMCCEvent`) live in `src/app/schemas/events.ts`; no `any` types in source files
 
 ---
 
@@ -46,16 +47,16 @@ The following variables must be set in `.env.local`:
 Quick messages displayed on the home page. Each announcement can have a poster, title, description, and an optional call-to-action button. Announcements have an expiry datetime — once passed they are no longer displayed.
 
 ### Events
-Planned community activities displayed in two places:
+Planned community activities displayed in three places:
 
-**Home page** — shows the next 5 upcoming events across both non-recurring and recurring events, sorted by date. Recurring events have their next occurrences computed server-side via `rrule`.
+**Home page** — shows the next 5 chronologically upcoming events, merged across non-recurring and recurring events. For each active recurring series, up to 5 future occurrences are computed server-side and pooled together with all future non-recurring events; the earliest 5 from that pool are displayed.
 
-**Calendar page** — a full FullCalendar view. Non-recurring events are fetched by date range. Recurring events are stored as a single base event row with a recurrence rule; FullCalendar's rrule plugin generates all occurrences client-side. The calendar timezone is `America/Toronto`.
+**Calendar page** — a full FullCalendar view. Non-recurring events are fetched by date range on every calendar navigation. Recurring events are stored as a single base event row with a recurrence rule; FullCalendar's `rrule` plugin generates all occurrences client-side. `dtstart`/`until`/`exdate` values are converted to floating Toronto local-time strings (no UTC offset) before being passed to FullCalendar so that `BYDAY` rules are evaluated against Toronto calendar days rather than UTC days.
 
-**Event detail page** — reached via `/events/[slug]`. For recurring events, the next (or most recent past) occurrence is computed from the recurrence rule using `rrule` with `tzid: "America/Toronto"`.
+**Event detail page** — reached via `/events/[slug]`. For recurring events, the next (or most recent past) occurrence is computed from the recurrence rule using `rrule` with `tzid: "America/Toronto"`. The page shows a human-readable recurrence summary (e.g. "Happens every month on the first Saturday") and a Google Maps embed for the venue.
 
 #### Recurring event schema
-The `recurrence_rule` table defines how an event repeats:
+The `recurrence_rule` table defines how an event repeats. Its TypeScript mirror is the `RecurrenceRule` interface in `src/app/schemas/events.ts`.
 
 | Column | Type | Description |
 |---|---|---|
@@ -68,10 +69,10 @@ The `recurrence_rule` table defines how an event repeats:
 | `count` | `smallint` | Max number of occurrences |
 | `exdates` | `text[]` | Excluded dates (skipped occurrences) |
 
-Each recurring series has exactly **one** event row in the `events` table (the base event). All occurrences are derived from it via the recurrence rule.
+Each recurring series has exactly **one** event row in the `events` table (the base event). All occurrences are derived from it via the recurrence rule. The full shape of a recurring event with its joined rule is typed as `RecurringBaseEvent` in `src/app/schemas/events.ts`.
 
 ### Gallery
-Event detail pages can display a photo gallery fetched from a linked OneDrive/SharePoint folder via Microsoft Graph. Only `.jpg`, `.jpeg`, and `.png` files are shown. Images open in a full-screen modal with previous/next navigation and keyboard support (arrow keys, Escape).
+Event detail pages can display a photo gallery fetched from a linked OneDrive/SharePoint folder via Microsoft Graph. Only `.jpg`, `.jpeg`, and `.png` files are shown. Images open in a full-screen lightbox modal (`src/components/expandableImage.tsx`) with previous/next navigation (looping), keyboard support (arrow keys, Escape), and scroll lock while open.
 
 ### Donations
 An embedded Zeffy donation form is shown on the home page.

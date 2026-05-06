@@ -10,6 +10,7 @@ import EventModal from "./eventModal";
 import Loading from "./loading";
 import { EventImpl } from "@fullcalendar/core/internal";
 import { fetchEvents, fetchRecurringBaseEvents } from "../actions/events";
+import { RecurringBaseEvent, RecurrenceRule } from "../app/schemas/events";
 
 function toFloatingToronto(isoDate: string): string {
   const date = new Date(isoDate);
@@ -27,20 +28,19 @@ function toFloatingToronto(isoDate: string): string {
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
-function buildRRuleObj(
-  dtstart: string,
-  rule: {
-    frequency: string;
-    interval?: number | null;
-    by_weekdays?: string[] | null;
-    by_month_day?: number | null;
-    by_set_position?: number[] | null;
-    until?: string | null;
-    count?: number | null;
-  },
-): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const options: Record<string, any> = {
+interface FCRRuleInput {
+  freq: string;
+  dtstart: string;
+  interval?: number;
+  byweekday?: string[];
+  bymonthday?: number;
+  bysetpos?: number[];
+  until?: string;
+  count?: number;
+}
+
+function buildRRuleObj(dtstart: string, rule: RecurrenceRule): FCRRuleInput {
+  const options: FCRRuleInput = {
     freq: rule.frequency.toUpperCase(),
     dtstart: toFloatingToronto(dtstart),
   };
@@ -112,8 +112,7 @@ export default function Calendar() {
 
   useEffect(() => {
     fetchRecurringBaseEvents({}).then((result) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data: any[] = result?.data?.data ?? [];
+      const data: RecurringBaseEvent[] = (result?.data?.data ?? []) as RecurringBaseEvent[];
       const rruleInputs: EventInput[] = data
         .map((ev) => {
           const rule = Array.isArray(ev.recurrence_rule)
@@ -122,11 +121,9 @@ export default function Calendar() {
           if (!rule) return null;
           return {
             ...ev,
-            rrule: buildRRuleObj(ev.start_date as string, rule),
-            duration: calcDuration(
-              ev.start_date as string,
-              ev.end_date as string,
-            ),
+            id: String(ev.id),
+            rrule: buildRRuleObj(ev.start_date, rule),
+            duration: calcDuration(ev.start_date, ev.end_date),
             exdate: rule.exdates?.map(toFloatingToronto) ?? [],
           };
         })

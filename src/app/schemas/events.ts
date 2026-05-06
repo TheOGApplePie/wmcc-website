@@ -21,3 +21,30 @@ export interface WMCCEvent {
   description: string;
   gallery_url?: string;
 }
+
+export interface RecurrenceRule {
+  frequency: string;
+  interval?: number | null;
+  by_weekdays?: string[] | null;
+  by_month_day?: number | null;
+  by_set_position?: number[] | null;
+  until?: string | null;
+  count?: number | null;
+  exdates?: string[] | null;
+}
+
+export interface RecurringBaseEvent {
+  id: number;
+  navigation_slug: string | null;
+  poster_url: string | null;
+  poster_alt: string | null;
+  title: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  call_to_action_link: string | null;
+  call_to_action_caption: string | null;
+  description: string;
+  recurrence_rule_id: string | null;
+  recurrence_rule: RecurrenceRule | RecurrenceRule[] | null;
+}
