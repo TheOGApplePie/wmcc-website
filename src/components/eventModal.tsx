@@ -59,11 +59,13 @@ export default function EventModal({
               )}
             </p>
           </div>
-          <button className="p-3 rounded-xl text-xl hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-            <Link href={`/events/${event.extendedProps.navigation_slug}`}>
-              Click here to learn more
-            </Link>
-          </button>
+          {event.extendedProps.navigation_slug && (
+            <button className="p-3 rounded-xl text-xl hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
+              <Link href={`/events/${event.extendedProps.navigation_slug}`}>
+                Learn more
+              </Link>
+            </button>
+          )}
         </div>
       </div>
     </div>

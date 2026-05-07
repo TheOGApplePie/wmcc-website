@@ -1,4 +1,5 @@
-import { fetchOneEvent } from "../../../actions/events";
+import { fetchOneEvent, fetchSimilarEvents } from "../../../actions/events";
+import { SimilarEvent } from "../../../app/schemas/events";
 import { RRule, Weekday } from "rrule";
 import Image from "next/image";
 
@@ -55,11 +56,48 @@ export default async function EventDetails({
   const { slug } = await params;
   const event = (await fetchOneEvent({ slug })).data?.data[0];
   if (!event) {
+    const similar = ((await fetchSimilarEvents({ slug })).data?.data ?? []) as SimilarEvent[];
     return (
-      <div className="w-full h-[77dvh] flex justify-center items-center">
-        <div>
-          <h1>No event could be found</h1>
+      <div className="w-full min-h-[77dvh] flex flex-col justify-center items-center px-8 py-16 gap-10">
+        <div className="text-center">
+          <h1 className="text-3xl font-semibold">We couldn&apos;t find that event.</h1>
+          {similar.length > 0 && (
+            <p className="mt-3 text-lg text-gray-600">
+              {similar.length === 1
+                ? "Perhaps you meant to navigate to this one?"
+                : "Perhaps you meant to navigate to one of these?"}
+            </p>
+          )}
         </div>
+        {similar.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            {similar.map((ev) => (
+              <Link
+                key={ev.id}
+                href={`/events/${ev.navigation_slug}`}
+                className="border rounded-xl p-4 w-full sm:w-64 hover:shadow-lg transition-shadow flex flex-col gap-3"
+              >
+                {ev.poster_url && (
+                  <Image
+                    src={ev.poster_url}
+                    alt={ev.poster_alt ?? ""}
+                    width={240}
+                    height={160}
+                    className="rounded-lg object-cover w-full"
+                  />
+                )}
+                <p className="font-semibold text-lg leading-snug">{ev.title}</p>
+                <p className="text-sm text-gray-500">{ev.location}</p>
+                <p className="text-sm text-gray-500">
+                  {new Date(ev.start_date).toLocaleString("en-CA", {
+                    timeZone: "America/Toronto",
+                    dateStyle: "medium",
+                  })}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

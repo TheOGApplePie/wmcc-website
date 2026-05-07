@@ -8,6 +8,9 @@ export const OneEventParams = z.object({
   slug: z.string(),
 });
 export const FetchRecurringBaseEventsParams = z.object({});
+export const SimilarEventsParams = z.object({
+  slug: z.string(),
+});
 
 export interface WMCCEvent {
   id: string;
@@ -33,9 +36,19 @@ export interface RecurrenceRule {
   exdates?: string[] | null;
 }
 
+export interface SimilarEvent {
+  id: number;
+  navigation_slug: string;
+  title: string;
+  poster_url: string | null;
+  poster_alt: string | null;
+  start_date: string;
+  location: string;
+}
+
 export interface RecurringBaseEvent {
   id: number;
-  navigation_slug: string | null;
+  navigation_slug: string;
   poster_url: string | null;
   poster_alt: string | null;
   title: string;

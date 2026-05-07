@@ -1,5 +1,6 @@
 import { UpcomingEvent } from "../app/page";
 import Image from "next/image";
+import Link from "next/link";
 
 interface EventPillAttributes {
   upcomingEvent: UpcomingEvent;
@@ -35,15 +36,11 @@ export default function EventPill({
               timeStyle: "medium",
             })}
           </p>
-          {upcomingEvent.call_to_action_link && (
-            <p>
-              <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-                <a href={upcomingEvent.call_to_action_link}>
-                  {upcomingEvent.call_to_action_caption}
-                </a>
-              </button>
-            </p>
-          )}
+          <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
+            <Link href={`/events/${upcomingEvent.navigation_slug}`}>
+              Learn more
+            </Link>
+          </button>
         </div>
       </div>
     </div>

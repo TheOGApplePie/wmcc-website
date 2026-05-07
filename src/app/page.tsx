@@ -75,6 +75,7 @@ export interface Announcement {
 }
 export interface UpcomingEvent {
   id: number;
+  navigation_slug: string;
   poster_url: string | null;
   poster_alt: string | null;
   title: string;
@@ -101,17 +102,19 @@ export default async function Home() {
         supabase
           .from("events")
           .select(
-            "id, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link",
+            "id, navigation_slug, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link",
           )
           .is("recurrence_rule_id", null)
+          .not("navigation_slug", "is", null)
           .gte("start_date", today.toISOString())
           .order("start_date", { ascending: true }),
         supabase
           .from("events")
           .select(
-            "id, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position, until, count)",
+            "id, navigation_slug, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position, until, count)",
           )
-          .not("recurrence_rule_id", "is", null),
+          .not("recurrence_rule_id", "is", null)
+          .not("navigation_slug", "is", null),
       ],
     );
 
@@ -122,6 +125,7 @@ export default async function Home() {
       .flatMap((event) =>
         getNextOccurrences(event, today, 5).map((next) => ({
           id: event.id,
+          navigation_slug: event.navigation_slug,
           poster_url: event.poster_url,
           poster_alt: event.poster_alt,
           title: event.title,
@@ -132,7 +136,7 @@ export default async function Home() {
         })),
       );
 
-    currentEvents = [...(nonRecurringRes.data ?? []), ...recurringUpcoming]
+    currentEvents = [...(nonRecurringRes.data ?? []) as UpcomingEvent[], ...recurringUpcoming]
       .sort(
         (a, b) =>
           new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
