@@ -1,5 +1,6 @@
 import { UpcomingEvent } from "../app/page";
 import Image from "next/image";
+import Link from "next/link";
 
 interface EventPillAttributes {
   upcomingEvent: UpcomingEvent;
@@ -21,7 +22,7 @@ export default function EventPill({
               height={300}
               width={200}
               src={upcomingEvent.poster_url}
-              alt={upcomingEvent.poster_alt}
+              alt={upcomingEvent.poster_alt ?? ""}
             />
           </div>
         )}
@@ -30,20 +31,16 @@ export default function EventPill({
           <p className="px-2 text-lg">{upcomingEvent.location}</p>
           <p className="px-2 text-lg">
             {new Date(eventDate).toLocaleString("en-CA", {
-              timeZone: "America/New_York",
+              timeZone: "America/Toronto",
               dateStyle: "full",
               timeStyle: "medium",
             })}
           </p>
-          {upcomingEvent.call_to_action_link && (
-            <p>
-              <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-                <a href={upcomingEvent.call_to_action_link}>
-                  {upcomingEvent.call_to_action_caption}
-                </a>
-              </button>
-            </p>
-          )}
+          <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
+            <Link href={`/events/${upcomingEvent.navigation_slug}`}>
+              Learn more
+            </Link>
+          </button>
         </div>
       </div>
     </div>

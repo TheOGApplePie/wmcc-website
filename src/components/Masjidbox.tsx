@@ -12,9 +12,11 @@ export default function MasjidboxWidget({
     script.src = "https://masjidbox.com/widgets/loader.js";
     script.async = true;
     script.defer = true;
-
     document.body.appendChild(script);
-  }, []);
+    return () => {
+      script.remove();
+    };
+  }, [xnonceHeader]);
 
   return (
     <div>

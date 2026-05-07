@@ -24,8 +24,6 @@ export default function EventModal({
         <button className="float-start text-2xl" onClick={closeModal}>
           <FontAwesomeIcon icon={faClose} />
         </button>
-
-        <h1>{event.title}</h1>
       </div>
       <div
         className={`block sm:grid justify-start gap-4 ${
@@ -45,20 +43,29 @@ export default function EventModal({
             />
           </div>
         )}
-        <div className="py-3 text-center col-span-2">
-          <h2>{event.extendedProps.description}</h2>
-          <h3 className="py-4">Location and time</h3>
-          <p>{event.extendedProps.location}</p>
-          <p>
-            {new Date(event.extendedProps.start_date).toLocaleString("en-CA", {
-              timeZone: "America/New_York",
-              dateStyle: "full",
-              timeStyle: "medium",
-            })}
-          </p>
-          <button className="p-3 rounded-xl text-xl hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-            <Link href={`/events/${event.id}`}>Click here to learn more</Link>
-          </button>
+        <div className="py-3 grid items-center text-center col-span-2">
+          <h1>{event.title}</h1>
+          <div>
+            <h2 className="py-4">Location and time</h2>
+            <p className="">{event.extendedProps.location}</p>
+            <p>
+              {(event.start ?? new Date(event.extendedProps.start_date as string)).toLocaleString(
+                "en-CA",
+                {
+                  timeZone: "America/Toronto",
+                  dateStyle: "full",
+                  timeStyle: "medium",
+                },
+              )}
+            </p>
+          </div>
+          {event.extendedProps.navigation_slug && (
+            <button className="p-3 rounded-xl text-xl hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
+              <Link href={`/events/${event.extendedProps.navigation_slug}`}>
+                Learn more
+              </Link>
+            </button>
+          )}
         </div>
       </div>
     </div>
