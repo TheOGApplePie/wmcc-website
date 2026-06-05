@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
 import { captchaValidation } from "../actions/captcha";
@@ -7,11 +7,9 @@ import { submitForm } from "../actions/contact";
 import { Slide, toast, ToastContainer, TypeOptions } from "react-toastify";
 
 declare global {
-  interface Window {
-    handleRecaptcha?: (token: string) => Promise<void>;
-    handleRecaptchaExpired?: () => void;
-    handleRecaptchaError?: () => void;
-  }
+  var handleRecaptcha: ((token: string) => Promise<void>) | undefined;
+  var handleRecaptchaExpired: (() => void) | undefined;
+  var handleRecaptchaError: (() => void) | undefined;
 }
 function notifyUser(message: string, type: string) {
   toast(message, {
@@ -30,11 +28,12 @@ export default function ContactForm({
   const { executeAsync: validateCaptcha } = useAction(captchaValidation, {
     onSettled: onCaptchaValidation,
   });
-  const phoneNumberRegex = /^\d{10}$/;
+  const phoneNumberRegex = /^[\d\s().+-]{10,}$/;
   const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const [captchaValid, setCaptchaValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [textareaLength, setTextareaLength] = useState(0);
+  const captchaContainerRef = useRef<HTMLDivElement>(null);
   const handleRecaptcha = useCallback(
     async (token: string) => {
       validateCaptcha({
@@ -61,27 +60,42 @@ export default function ContactForm({
   } = useForm({ mode: "onBlur" });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.handleRecaptcha = handleRecaptcha;
-      window.handleRecaptchaExpired = handleRecaptchaExpired;
-      window.handleRecaptchaError = handleRecaptchaError;
-    }
+    globalThis.handleRecaptcha = handleRecaptcha;
+    globalThis.handleRecaptchaExpired = handleRecaptchaExpired;
+    globalThis.handleRecaptchaError = handleRecaptchaError;
 
     return () => {
-      if (typeof window !== "undefined") {
-        delete window.handleRecaptcha;
-        delete window.handleRecaptchaExpired;
-        delete window.handleRecaptchaError;
-      }
+      delete globalThis.handleRecaptcha;
+      delete globalThis.handleRecaptchaExpired;
+      delete globalThis.handleRecaptchaError;
     };
   }, [handleRecaptcha, handleRecaptchaExpired, handleRecaptchaError]);
+
+  // If the reCAPTCHA script already ran its auto-render pass before this
+  // component mounted (SPA navigation via Link), the .g-recaptcha div is new
+  // and will be empty. Explicitly render the widget in that case.
+  useEffect(() => {
+    if (typeof grecaptcha === "undefined" || !captchaPublicKey) return;
+    const container = captchaContainerRef.current;
+    if (!container) return;
+    grecaptcha.ready(() => {
+      if (container.childElementCount === 0) {
+        grecaptcha?.render(container, {
+          sitekey: captchaPublicKey,
+          callback: (token: string) => { globalThis.handleRecaptcha?.(token); },
+          "expired-callback": () => globalThis.handleRecaptchaExpired?.(),
+          "error-callback": () => globalThis.handleRecaptchaError?.(),
+        });
+      }
+    });
+  }, [captchaPublicKey]);
 
   async function onCaptchaValidation({
     result,
   }: {
     result: Awaited<ReturnType<typeof captchaValidation>>;
   }) {
-    setCaptchaValid(result.data?.data?.success);
+    setCaptchaValid(result.data?.data?.success === true);
   }
 
   async function feedbackSuccess({
@@ -91,14 +105,15 @@ export default function ContactForm({
   }) {
     setIsSubmitting(false);
     let message =
-      "Thank you! We have recieved your message and will be in touch as needed.";
+      "Thank you! We have received your message and will be in touch as needed.";
     let type = "success";
     if (result.data?.error) {
-      message = "Something went wrong, please try again later.";
+      message = result.data.error;
       type = "error";
     } else {
       (document.getElementById("submission-form") as HTMLFormElement).reset();
-      grecaptcha.reset();
+      setTextareaLength(0);
+      if (typeof grecaptcha !== "undefined") grecaptcha.reset();
     }
     notifyUser(message, type);
   }
@@ -187,8 +202,7 @@ export default function ContactForm({
           />
           {errors.telephone?.type === "pattern" && (
             <span className="text-red-600">
-              Your phone number must have exactly 10 digits (numbers only, no
-              letters or other characters).
+              Please enter a valid phone number (e.g. 905-555-1234 or (905) 555-1234).
             </span>
           )}
         </label>
@@ -196,7 +210,7 @@ export default function ContactForm({
       <div className="relative">
         <span
           className={`absolute bottom-0 right-0 ${
-            textareaLength < 20 ? "text-red-500" : "text-gray-500"
+            textareaLength < 20 ? "text-red-500" : "text-text-muted"
           } text-sm`}
         >
           {textareaLength} / 500
@@ -237,6 +251,7 @@ export default function ContactForm({
       </div>
       <div className="text-center mt-5">
         <div
+          ref={captchaContainerRef}
           className="g-recaptcha"
           data-sitekey={captchaPublicKey}
           data-callback="handleRecaptcha"
@@ -244,9 +259,7 @@ export default function ContactForm({
           data-error-callback="handleRecaptchaError"
         ></div>
         <button
-          className={`border-0 text-xl p-3 mt-3 rounded text-white bg-secondary-colour-green hover:bg-[var(--secondary-colour-green-light)] disabled:bg-green-950 hover:disabled:cursor-not-allowed ${
-            isSubmitting && "submitting"
-          }`}
+          className={`btn-primary text-xl mt-3 ${isSubmitting ? "submitting" : ""}`}
           type="submit"
           disabled={
             Object.keys(errors).length > 0 || isSubmitting || !captchaValid

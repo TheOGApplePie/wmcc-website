@@ -2,7 +2,7 @@
 import { Announcement } from "../app/page";
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import CTALink from "./CTALink";
 
 interface SlideshowProps {
   content: Announcement[];
@@ -11,6 +11,7 @@ interface SlideshowProps {
 export default function CarouselComponent({ content }: SlideshowProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const nextSlide = useCallback(() => {
     if (isTransitioning || content.length < 2) return;
@@ -42,15 +43,16 @@ export default function CarouselComponent({ content }: SlideshowProps) {
     [isTransitioning, currentSlide]
   );
 
-  // Auto-advance slides
+  // Auto-advance slides — stops when paused
   useEffect(() => {
+    if (isPaused) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [nextSlide]);
+  }, [nextSlide, isPaused]);
 
   if (content?.length) {
     return (
-      <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f]">
+      <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-dark-navy to-main-blue">
         {/* Slides */}
         {content.map((slide, index) => (
           <div
@@ -81,16 +83,9 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                     </h2>
                   </div>
                   {slide.call_to_action_link && (
-                    <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
-                      <Link
-                        href={slide.call_to_action_link}
-                        className="inline-block"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {slide.call_to_action_caption}
-                      </Link>
-                    </button>
+                    <CTALink href={slide.call_to_action_link}>
+                      {slide.call_to_action_caption}
+                    </CTALink>
                   )}
                 </div>
 
@@ -111,11 +106,9 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                     />
                   </div>
                   {slide.call_to_action_link && (
-                    <button className="inline-block sm:hidden bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green-light)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
-                      <Link href={slide.call_to_action_link}>
-                        {slide.call_to_action_caption}
-                      </Link>
-                    </button>
+                    <CTALink href={slide.call_to_action_link} className="sm:hidden">
+                      {slide.call_to_action_caption}
+                    </CTALink>
                   )}
                 </div>
               </>
@@ -130,16 +123,9 @@ export default function CarouselComponent({ content }: SlideshowProps) {
                   </h2>
                 </div>
                 {slide.call_to_action_link && slide.call_to_action_caption && (
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={slide.call_to_action_link}
-                    className="inline-block"
-                  >
-                    <button className="bg-[var(--main-colour-blue)] hover:bg-[var(--secondary-colour-green)] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg">
-                      {slide.call_to_action_caption}
-                    </button>
-                  </a>
+                  <CTALink href={slide.call_to_action_link}>
+                    {slide.call_to_action_caption}
+                  </CTALink>
                 )}
               </div>
             )}
@@ -164,6 +150,15 @@ export default function CarouselComponent({ content }: SlideshowProps) {
           ›
         </button>
 
+        {/* Pause / play */}
+        <button
+          onClick={() => setIsPaused((p) => !p)}
+          className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-300 text-sm"
+          aria-label={isPaused ? "Play slideshow" : "Pause slideshow"}
+        >
+          {isPaused ? "▶" : "⏸"}
+        </button>
+
         {/* Indicators */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {content.map((_, index) => (
@@ -184,7 +179,7 @@ export default function CarouselComponent({ content }: SlideshowProps) {
     );
   } else {
     return (
-      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-[#08101a] to-[#1e3a5f] flex items-center justify-center">
+      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-dark-navy to-main-blue flex items-center justify-center">
         <p className="text-white text-4xl text-center">
           There are no announcements just yet. But stay tuned!
         </p>

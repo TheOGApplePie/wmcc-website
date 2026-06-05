@@ -1,5 +1,13 @@
 import ContactForm from "../../components/contactForm";
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Get in touch with the Waterdown Muslim Community Centre. Fill out our contact form or visit us at 20 Innovation Dr, Dundas, ON.",
+};
+
 export default function Contact() {
   const apiKey = process.env.MAPS_API;
   const captchaPublicKey = process.env.RECAPTCHA_SITE_KEY;
@@ -7,7 +15,7 @@ export default function Contact() {
   const googleMapsURL =
     "https://www.google.com/maps/embed/v1/place?key=" +
     apiKey +
-    "&q=20+Innovation+Dr,+Hamilton,+ON+L9H+7P3,+Canada";
+    "&q=20+Innovation+Dr,+Dundas,+ON+L9H+7P3,+Canada";
   return (
     <div className="p-4 sm:p-10">
       <h1 className="text-4xl">Contact Us</h1>
@@ -24,7 +32,7 @@ export default function Contact() {
                 className="inline"
                 height="30"
                 width="30"
-                src="location-dot.svg"
+                src="/location-dot.svg"
                 alt="location icon"
               />
               20 Innovation Dr, Dundas, ON L9H 7P3
@@ -32,15 +40,15 @@ export default function Contact() {
             {apiKey ? (
               <iframe
                 title="googlemaps"
-                className="w-full"
+                className="w-full h-64"
                 src={googleMapsURL}
               ></iframe>
             ) : (
-              <div>Loading...</div>
+              <p className="text-text-muted text-base mt-2">Map unavailable.</p>
             )}
           </div>
         </div>
-        <div className="p-5 h-full rounded-b-lg sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-[#1E3A5F]">
+        <div className="p-5 h-full rounded-b-lg sm:rounded-b-none sm:rounded-r-lg col-span-1 bg-main-blue">
           <ContactForm captchaPublicKey={captchaPublicKey ?? ""} />
         </div>
       </div>

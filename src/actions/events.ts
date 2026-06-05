@@ -77,7 +77,7 @@ export const fetchSimilarEvents = actionClient
   .action(async ({ parsedInput }) => {
     try {
       const { slug } = parsedInput;
-      const words = slug.split("-").filter((w) => w.length >= 3);
+      const words = slug.split("-").filter((w) => w.length >= 3).slice(0, 5);
       if (!words.length) return { error: null, data: [] };
 
       const supabase = await createClient();
