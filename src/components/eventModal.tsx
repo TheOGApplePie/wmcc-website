@@ -60,7 +60,7 @@ export default function EventModal({
               </p>
             </div>
             {event.extendedProps.navigation_slug && (
-              <CTALink href={`/events/${event.extendedProps.navigation_slug}`} variant="ghost" className="text-xl">
+              <CTALink href={`/events/${event.extendedProps.navigation_slug}`} className="text-xl">
                 Learn more
               </CTALink>
             )}
