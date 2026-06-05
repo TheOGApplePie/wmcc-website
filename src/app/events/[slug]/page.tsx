@@ -1,6 +1,7 @@
 import { fetchOneEvent, fetchSimilarEvents } from "../../../actions/events";
 import { SimilarEvent } from "../../../app/schemas/events";
-import { RRule, Weekday } from "rrule";
+import CTALink from "../../../components/CTALink";
+import { RRule, Weekday, Options } from "rrule";
 import Image from "next/image";
 
 const FREQ_MAP: Record<string, number> = {
@@ -10,8 +11,13 @@ const FREQ_MAP: Record<string, number> = {
   YEARLY: RRule.YEARLY,
 };
 const WEEKDAY_MAP: Record<string, Weekday> = {
-  MO: RRule.MO, TU: RRule.TU, WE: RRule.WE, TH: RRule.TH,
-  FR: RRule.FR, SA: RRule.SA, SU: RRule.SU,
+  MO: RRule.MO,
+  TU: RRule.TU,
+  WE: RRule.WE,
+  TH: RRule.TH,
+  FR: RRule.FR,
+  SA: RRule.SA,
+  SU: RRule.SU,
 };
 function buildEventRRule(
   rule: {
@@ -25,8 +31,7 @@ function buildEventRRule(
   },
   startDate: string,
 ): RRule {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const options: Record<string, any> = {
+  const options: Partial<Options> = {
     freq: FREQ_MAP[rule.frequency.toUpperCase()] ?? RRule.WEEKLY,
     dtstart: new Date(startDate),
     tzid: "America/Toronto",
@@ -35,7 +40,7 @@ function buildEventRRule(
   if (rule.by_weekdays?.length) {
     options.byweekday = rule.by_weekdays
       .map((d) => WEEKDAY_MAP[d.toUpperCase()])
-      .filter(Boolean);
+      .filter((w): w is Weekday => w !== undefined);
   }
   if (rule.by_month_day) options.bymonthday = rule.by_month_day;
   if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
@@ -56,13 +61,16 @@ export default async function EventDetails({
   const { slug } = await params;
   const event = (await fetchOneEvent({ slug })).data?.data[0];
   if (!event) {
-    const similar = ((await fetchSimilarEvents({ slug })).data?.data ?? []) as SimilarEvent[];
+    const similar = ((await fetchSimilarEvents({ slug })).data?.data ??
+      []) as SimilarEvent[];
     return (
       <div className="w-full min-h-[77dvh] flex flex-col justify-center items-center px-8 py-16 gap-10">
         <div className="text-center">
-          <h1 className="text-3xl font-semibold">We couldn&apos;t find that event.</h1>
+          <h1 className="text-3xl font-semibold">
+            We couldn&apos;t find that event.
+          </h1>
           {similar.length > 0 && (
-            <p className="mt-3 text-lg text-gray-600">
+            <p className="mt-3 text-lg text-text-muted">
               {similar.length === 1
                 ? "Perhaps you meant to navigate to this one?"
                 : "Perhaps you meant to navigate to one of these?"}
@@ -87,8 +95,8 @@ export default async function EventDetails({
                   />
                 )}
                 <p className="font-semibold text-lg leading-snug">{ev.title}</p>
-                <p className="text-sm text-gray-500">{ev.location}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-text-muted">{ev.location}</p>
+                <p className="text-sm text-text-muted">
                   {new Date(ev.start_date).toLocaleString("en-CA", {
                     timeZone: "America/Toronto",
                     dateStyle: "medium",
@@ -129,7 +137,7 @@ export default async function EventDetails({
   const googleMapsURL =
     "https://www.google.com/maps/embed/v1/place?key=" +
     apiKey +
-    `&q=${event.location}`;
+    `&q=${encodeURIComponent(event.location)}`;
   let driveItem: { value: Record<string, string>[] } = { value: [] };
   if (event.gallery_url) {
     const credential = new ClientSecretCredential(
@@ -156,32 +164,39 @@ export default async function EventDetails({
 
   return (
     <div>
+      <div className="px-6 py-3 bg-[var(--main-colour-blue)]">
+        <Link href="/events" className="btn-nav inline-flex items-center gap-1 text-sm">
+          ← Back to events
+        </Link>
+      </div>
       <div className="sm:py-10 sm:px-5 flex flex-col items-center bg-[var(--main-colour-blue)]">
-        <div className="sm:border sm:rounded-2xl sm:shadow-lg bg-[#111111] sm:bg-slate-50">
+        <div className="sm:border sm:rounded-2xl sm:shadow-lg bg-near-black sm:bg-white">
           <div className="hidden sm:block sm:pt-5">
             <h1 className="text-center">{event.title}</h1>
           </div>
-          <div className="sm:py-5 sm:grid sm:grid-cols-2 max-w-4xl">
-            <div className="p-3 sm:col-span-1">
-              <Image
-                className="rounded-2xl shadow-lg sm:shadow-none"
-                src={event.poster_url || "https://picsum.photos/300/500"}
-                alt={event.poster_alt || "Dummy Image"}
-                height={700}
-                width={800}
-              />
-            </div>
-            <div className="p-4 col-span-1 text-white sm:text-black sm:bg-slate-50 bg-[var(--main-colour-blue)]">
+          <div className={`sm:py-5 max-w-4xl ${event.poster_url ? "sm:grid sm:grid-cols-2" : ""}`}>
+            {event.poster_url && (
+              <div className="p-3 sm:col-span-1">
+                <Image
+                  className="rounded-2xl shadow-lg sm:shadow-none"
+                  src={event.poster_url}
+                  alt={event.poster_alt || event.title}
+                  height={700}
+                  width={800}
+                />
+              </div>
+            )}
+            <div className="p-4 col-span-1 text-white sm:text-black sm:bg-white bg-main-blue">
               <h1 className="block sm:hidden text-center py-3">
                 {event.title}
               </h1>
               <p className="text-xl whitespace-pre-wrap">{event.description}</p>
-              <div className="py-2">
+              <div className="py-4">
                 <h3>Event Location</h3>
                 <p>{event.location}</p>
                 <iframe
                   title="googlemaps"
-                  className="w-full"
+                  className="w-full h-48"
                   src={googleMapsURL}
                 ></iframe>
                 <p>
@@ -211,33 +226,29 @@ export default async function EventDetails({
               </div>
 
               {event.call_to_action_link && (
-                <button className="text-xl rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] text-white sm:hover:text-white sm:text-[var(--main-colour-blue)] transition-colors">
-                  <Link href={event.call_to_action_link}>
-                    {event.call_to_action_caption}
-                  </Link>
-                </button>
+                <CTALink
+                  href={event.call_to_action_link}
+                  variant="ghost"
+                  className="text-xl"
+                >
+                  {event.call_to_action_caption}
+                </CTALink>
               )}
             </div>
           </div>
         </div>
       </div>
-      <div className="p-5">
-        <h2>See our memorable moments from this event</h2>
-      </div>
-      <div className="p-10">
-        {galleryImages.length ? (
+      {galleryImages.length > 0 && (
+        <div className="p-10">
+          <h2 className="mb-5">See our memorable moments from this event</h2>
           <GalleryViewer
             images={galleryImages.map((item) => ({
               src: item["@microsoft.graph.downloadUrl"],
               alt: item.name ?? "Gallery image",
             }))}
           />
-        ) : (
-          <div>
-            <h3>We don&apos;t have any memories to share just yet.</h3>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -287,7 +298,9 @@ function buildRecurrenceString(
     const pos =
       ORDINAL_MAP[String(rule.by_set_position[0])] ??
       `${rule.by_set_position[0]}${ordinalSuffix(rule.by_set_position[0])}`;
-    const days = rule.by_weekdays.map((d) => DAY_MAP[d.toUpperCase()] ?? d).join(" and ");
+    const days = rule.by_weekdays
+      .map((d) => DAY_MAP[d.toUpperCase()] ?? d)
+      .join(" and ");
     base += ` on the ${pos} ${days}`;
   } else if (rule.by_weekdays?.length) {
     const days = rule.by_weekdays.map((d) => DAY_MAP[d.toUpperCase()] ?? d);

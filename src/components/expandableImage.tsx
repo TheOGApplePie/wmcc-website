@@ -33,10 +33,8 @@ export default function GalleryViewer({
     return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, images.length]);
 
-  const goNext = () =>
-    setActiveIndex((i) => ((i ?? 0) + 1) % images.length);
-  const goPrev = () =>
-    setActiveIndex((i) => (((i ?? 0) - 1) + images.length) % images.length);
+  const goNext = () => setActiveIndex((i) => ((i ?? 0) + 1) % images.length);
+  const goPrev = () => setActiveIndex((i) => (((i ?? 0) - 1) + images.length) % images.length);
 
   return (
     <>
@@ -45,7 +43,7 @@ export default function GalleryViewer({
           <button
             key={img.src}
             type="button"
-            className="shrink-0 cursor-pointer"
+            className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => setActiveIndex(index)}
           >
             <Image
@@ -76,6 +74,9 @@ export default function GalleryViewer({
               sizes="100vw"
             />
           </div>
+          <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-20 pointer-events-none">
+            {activeIndex + 1} / {images.length}
+          </p>
           <button
             type="button"
             className="absolute top-4 right-4 text-white text-4xl leading-none hover:text-gray-300 transition-colors z-20"

@@ -50,8 +50,8 @@ export const submitForm = actionClient
       return {
         error:
           error instanceof Error && error.message === RATE_LIMIT_MESSAGE
-            ? "You have submitted too many requests. Please wait a minute"
-            : "Internal Server Error",
+            ? RATE_LIMIT_MESSAGE
+            : "Something went wrong, please try again later.",
         data: null,
       };
     }

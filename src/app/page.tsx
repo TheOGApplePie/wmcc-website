@@ -2,6 +2,7 @@ import CarouselComponent from "../components/Carousel";
 import MasjidboxWidget from "../components/Masjidbox";
 import EventPill from "../components/eventPill";
 import Image from "next/image";
+import CTALink from "../components/CTALink";
 import { createClient } from "../utils/supabase/server";
 import { headers } from "next/headers";
 import { RRule, Weekday, Options } from "rrule";
@@ -48,17 +49,9 @@ function getNextOccurrences(event: RecurringBaseEvent, now: Date, limit = 5): Da
     if (rule.count) options.count = rule.count;
 
     const r = new RRule(options);
-    const results: Date[] = [];
-    let cursor = now;
-    let inclusive = true;
-    for (let i = 0; i < limit; i++) {
-      const next = r.after(cursor, inclusive);
-      if (!next) break;
-      results.push(next);
-      cursor = next;
-      inclusive = false;
-    }
-    return results;
+    const farFuture = new Date(now);
+    farFuture.setFullYear(farFuture.getFullYear() + 2);
+    return r.between(now, farFuture, true).slice(0, limit);
   } catch {
     return [];
   }
@@ -155,7 +148,7 @@ export default async function Home() {
         <MasjidboxWidget xnonceHeader={xnonceHeader} />
       </section>
       <section>
-        <div className="border-t-4 px-8 py-14 bg-[var(--main-colour-blue)] text-white">
+        <div className="border-t-4 px-8 py-14 bg-main-blue text-white">
           <h1 className="text-4xl pb-8">About Us</h1>
           <div className="grid grid-cols-2 gap-4">
             <div className="md:col-span-1 col-span-2 ">
@@ -186,6 +179,11 @@ export default async function Home() {
                 WMCC strives to create enriching opportunities that celebrate
                 the beauty and purpose of living a balanced Islamic life.
               </p>
+              <div className="mt-6">
+                <CTALink href="/about">
+                  Learn more about WMCC
+                </CTALink>
+              </div>
             </div>
           </div>
         </div>
@@ -206,7 +204,7 @@ export default async function Home() {
             </div>
           ) : (
             <div className="flex justify-center py-10">
-              <div className="bg-[var(--warning-colour)] flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
+              <div className="bg-warning flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
                 <Image
                   src="/wmcc-black.png"
                   alt="wmcc white logo"
@@ -222,17 +220,16 @@ export default async function Home() {
         </div>
       </section>
       <section>
-        <div className="border-t-4 bg-[var(--main-colour-blue)] text-white">
+        <div className="border-t-4 bg-main-blue text-white">
           <div className="p-8">
             <h1 className="text-4xl">
               Help support the WMCC and donate today!
             </h1>
           </div>
-          <div className="sm:p-8 flex items-center justify-center">
+          <div className="sm:p-8 w-full flex items-center justify-center">
             <iframe
-              // src="https://app.irm.io/wmcc.ca/operations"
               src="https://www.zeffy.com/en-CA/donation-form/donate-to-support-our-community-centre"
-              width={850}
+              className="w-full max-w-3xl"
               height={600}
               title="WMCC Operations Donation"
               sandbox="allow-scripts allow-forms allow-popups allow-same-origin"

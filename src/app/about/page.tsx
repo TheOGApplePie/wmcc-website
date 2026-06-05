@@ -1,4 +1,12 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description:
+    "Learn about the Waterdown Muslim Community Centre — our board of directors, mission, and the programs we offer for the community.",
+};
+
 export default function About() {
   const boardOfDirectors = [
     { name: "Br Ahmed Jamil", title: "President" },
@@ -8,7 +16,7 @@ export default function About() {
   return (
     <>
       <section>
-        <div className="w-full p-4 sm:p-8 bg-gradient-to-r from-[#08101a] to-[#1e3a5f] text-center">
+        <div className="w-full p-4 sm:p-8 bg-gradient-to-r from-dark-navy to-main-blue text-center">
           <h1 className="text-white font-bold text-4xl sm:text-9xl p-4 sm:p-8">
             WMCC
           </h1>

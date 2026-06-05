@@ -10,7 +10,10 @@ export default function EventPill({
 }: Readonly<EventPillAttributes>) {
   const eventDate = new Date(upcomingEvent.start_date);
   return (
-    <div className="border rounded-xl p-3 min-h-[325px]">
+    <Link
+      href={`/events/${upcomingEvent.navigation_slug}`}
+      className="border rounded-xl p-3 min-h-[325px] block hover:shadow-md transition-shadow"
+    >
       <div
         className={`grid grid-cols-1 ${
           upcomingEvent.poster_url && "sm:grid-cols-2"
@@ -36,13 +39,9 @@ export default function EventPill({
               timeStyle: "medium",
             })}
           </p>
-          <button className="rounded py-4 px-2 hover:bg-[var(--secondary-colour-green-light)] hover:text-white text-[var(--main-colour-blue)] transition-colors">
-            <Link href={`/events/${upcomingEvent.navigation_slug}`}>
-              Learn more
-            </Link>
-          </button>
+          <span className="btn-primary inline-block mt-2">Learn more</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

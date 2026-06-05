@@ -6,12 +6,12 @@ export function middleware(request: NextRequest) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com https://masjidbox.com;
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com https://masjidbox.com https://recaptcha.net;
     style-src 'self' 'unsafe-inline';
-    frame-src https://www.google.com https://masjidbox.com https://www.zeffy.com;
-    connect-src 'self' https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io;
-    img-src 'self' https://gkpctbvyswcfccogoepl.supabase.co;
-    font-src 'self' https://fonts.googleapis.com;
+    frame-src https://www.google.com https://recaptcha.net https://masjidbox.com https://www.zeffy.com;
+    connect-src 'self' https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io https://www.google.com https://masjidbox.com;
+    img-src 'self' https://gkpctbvyswcfccogoepl.supabase.co https://www.gstatic.com https://masjidbox.com https://*.sharepoint.com;
+    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
