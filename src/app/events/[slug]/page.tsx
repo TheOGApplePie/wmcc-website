@@ -228,7 +228,7 @@ export default async function EventDetails({
               {event.call_to_action_link && (
                 <CTALink
                   href={event.call_to_action_link}
-                  variant="ghost"
+
                   className="text-xl"
                 >
                   {event.call_to_action_caption}

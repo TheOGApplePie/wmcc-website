@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type Variant = "primary" | "ghost" | "nav";
+type Variant = "primary" | "nav";
 
 interface CTALinkProps {
   href: string;
