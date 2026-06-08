@@ -34,7 +34,6 @@ function buildEventRRule(
   const options: Partial<Options> = {
     freq: FREQ_MAP[rule.frequency.toUpperCase()] ?? RRule.WEEKLY,
     dtstart: new Date(startDate),
-    tzid: "America/Toronto",
   };
   if (rule.interval && rule.interval > 1) options.interval = rule.interval;
   if (rule.by_weekdays?.length) {
