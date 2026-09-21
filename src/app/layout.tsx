@@ -4,6 +4,7 @@ import Footer from "../components/footer";
 import Script from "next/script";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -32,6 +33,7 @@ export default async function RootLayout({
         ></Script>
         <Header></Header>
         {children}
+        <Analytics/>
         <Footer></Footer>
       </body>
     </html>
