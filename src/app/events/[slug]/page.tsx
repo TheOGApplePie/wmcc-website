@@ -1,7 +1,7 @@
 import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   getEventsBySlug,
   getEventSelection,
@@ -14,7 +14,7 @@ import EventSelectedSchedule from "../../../components/eventSelectedSchedule";
 import SessionDetails from "../../../components/sessionDetails";
 import EventLocation from "../../../components/eventLocation";
 import CTALink from "../../../components/CTALink";
-import { formatEventTime } from "../../../lib/events";
+import { eventHref, formatEventTime } from "../../../lib/events";
 import { SITE_ORIGIN } from "../../../lib/site";
 
 type Props = Readonly<{
@@ -76,6 +76,10 @@ export default async function EventPage({ params, searchParams }: Props) {
     search.session,
   );
   if (!selection) notFound();
+  if (selection.redirectScheduleId) {
+    const target = eventHref(slug, search.session, selection.redirectScheduleId);
+    redirect(`${target}&page=${search.page}`);
+  }
   const { session, schedule } = selection;
   const poster = schedule?.poster_url ? schedule : event;
   const displayed = session ?? poster;

@@ -224,8 +224,7 @@ export async function getEventSelection(
   let session: EventOccurrence | null = null;
   if (sessionId) {
     session = await getSession(event.id, sessionId);
-    if (!session || (scheduleId && session.schedule_id !== scheduleId))
-      return null;
+    if (!session) return null;
   } else if (!scheduleId) {
     session = (await getUpcomingSessions(event.id, 0, 1))[0] ?? null;
   }
@@ -234,7 +233,13 @@ export async function getEventSelection(
     ? await getPublicSchedule(event.id, selectedId)
     : null;
   if (selectedId && !schedule) return null;
-  return { session, schedule };
+  // Validate the requested schedule before correcting a stale schedule/session pair.
+  if (session && schedule && session.schedule_id !== schedule.id) {
+    const currentSchedule = await getPublicSchedule(event.id, session.schedule_id);
+    if (!currentSchedule) return null;
+    return { session, schedule, redirectScheduleId: currentSchedule.id };
+  }
+  return { session, schedule, redirectScheduleId: null };
 }
 
 export async function getNextForSchedule(

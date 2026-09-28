@@ -17,7 +17,7 @@ The website requires announcement migrations 026â€“027 and event migrations 028â
 
 The single event route is /events/{slug}. Slugs identify events, never schedules.
 
-Optional ?schedule={scheduleUuid}&session={occurrenceUuid} parameters select a schedule and a specific occurrence. Both UUIDs are validated, and their parent event must match the event resolved by slug. A session must also belong to the requested schedule. Invalid, mismatched or unpublished references return the not-found UI. Session-only links remain supported.
+Optional ?schedule={scheduleUuid}&session={occurrenceUuid} parameters select a schedule and a specific occurrence. Both UUIDs are validated independently, and each must belong to the published event resolved by slug. Invalid, cross-event or unpublished references return the not-found UI. If both are valid but the session now belongs to another schedule, the server validates that current schedule and redirects to its URL, preserving the session and pagination. The redirect is temporary because the session may move again. Session-only links remain supported.
 
 A schedule-only link shows the selected schedule's label, initial timing, effective poster and location, even when cancelled or ended. A session link additionally shows the exact session's effective timing and cancellation/supersession status.
 
