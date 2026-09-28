@@ -1,72 +1,83 @@
-import { faClose } from "@fortawesome/free-solid-svg-icons/faClose";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Image from "next/image";
-import { EventImpl } from "@fullcalendar/core/internal";
-import CTALink from "./CTALink";
+"use client";
+import { useEffect, useRef } from "react";
+import Image from "./eventPoster";
+import Link from "next/link";
+import type { EventOccurrence } from "../app/schemas/events";
+import { eventHref, formatEventTime } from "../lib/events";
 
-interface EventModalProps {
-  event: EventImpl | null;
-  modalIsOpen: boolean;
-  closeModal: () => void;
-}
 export default function EventModal({
   event,
-  modalIsOpen,
   closeModal,
-}: Readonly<EventModalProps>) {
-  if (!modalIsOpen || !event) {
-    return null;
-  }
+}: Readonly<{
+  event: EventOccurrence | null;
+  closeModal: () => void;
+}>) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!event || !dialog) return;
+    const previousFocus = document.activeElement;
+    dialog.showModal();
+    return () => {
+      dialog.close();
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+  }, [event]);
 
   return (
-    <div className="fixed inset-0 z-[19] flex items-center justify-center">
-      <button
-        className="absolute inset-0 bg-black/40 cursor-default"
-        onClick={closeModal}
-        aria-label="Close modal"
-      />
-      <dialog open aria-label={event?.title ?? "Event details"} className="relative m-0 bg-white rounded-md shadow-md border p-4 w-full sm:w-3/4 xl:w-1/2 max-h-[90dvh] overflow-y-auto z-10">
-        <div className="pb-4 text-center">
-          <button className="float-start text-2xl" onClick={closeModal} aria-label="Close event details">
-            <FontAwesomeIcon icon={faClose} />
+    <dialog
+      ref={dialogRef}
+      onCancel={closeModal}
+      aria-labelledby="event-modal-title"
+      className="m-auto rounded-xl p-6 w-full sm:w-3/4 xl:w-1/2 max-h-[90dvh] backdrop:bg-black/50"
+    >
+      {event && (
+        <>
+          <button
+            type="button"
+            autoFocus
+            onClick={closeModal}
+            className="btn-primary mb-4"
+          >
+            Close
           </button>
-        </div>
-        <div
-          className={`block sm:grid justify-start gap-4 ${
-            event.extendedProps.poster_url ? "grid-cols-4" : "grid-cols-2"
-          }`}
-        >
-          {event.extendedProps.poster_url && (
-            <div className="flex justify-center col-span-2">
-              <Image
-                className="self-center"
-                src={event.extendedProps.poster_url}
-                alt={event.extendedProps.poster_alt || `Poster for ${event.title}`}
-                height={300}
-                width={300}
-              />
-            </div>
-          )}
-          <div className="py-3 grid items-center text-center col-span-2">
-            <h1>{event.title}</h1>
+          <h2 id="event-modal-title" className="text-2xl">
+            {event.title}
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4 py-4">
+            <Image
+              src={event.poster_url || "/wmcc-black.png"}
+              alt={event.poster_alt ?? event.title}
+              height={300}
+              width={300}
+            />
             <div>
-              <h2 className="py-4">Location and time</h2>
-              <p>{event.extendedProps.location}</p>
+              <p>{event.location || "Location to be announced"}</p>
               <p>
-                {(event.start ?? new Date(event.extendedProps.start_date as string)).toLocaleString(
-                  "en-CA",
-                  { timeZone: "America/Toronto", dateStyle: "full", timeStyle: "medium" },
-                )}
+                <time dateTime={event.start_at}>
+                  {formatEventTime(event.start_at)}
+                </time>
               </p>
-            </div>
-            {event.extendedProps.navigation_slug && (
-              <CTALink href={`/events/${event.extendedProps.navigation_slug}`} className="text-xl">
+              <p>
+                Ends{" "}
+                <time dateTime={event.end_at}>
+                  {formatEventTime(event.end_at)}
+                </time>
+              </p>
+              <Link
+                className="btn-primary inline-block mt-4"
+                href={eventHref(
+                  event.navigation_slug,
+                  event.id,
+                  event.schedule_id,
+                )}
+              >
                 Learn more
-              </CTALink>
-            )}
+              </Link>
+            </div>
           </div>
-        </div>
-      </dialog>
-    </div>
+        </>
+      )}
+    </dialog>
   );
 }

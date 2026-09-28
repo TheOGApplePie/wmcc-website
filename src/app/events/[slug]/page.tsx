@@ -1,333 +1,175 @@
-import { fetchOneEvent, fetchSimilarEvents } from "../../../actions/events";
-import { SimilarEvent } from "../../../app/schemas/events";
-import CTALink from "../../../components/CTALink";
-import { RRule, Weekday, Options } from "rrule";
-import Image from "next/image";
-
-const FREQ_MAP: Record<string, number> = {
-  DAILY: RRule.DAILY,
-  WEEKLY: RRule.WEEKLY,
-  MONTHLY: RRule.MONTHLY,
-  YEARLY: RRule.YEARLY,
-};
-const WEEKDAY_MAP: Record<string, Weekday> = {
-  MO: RRule.MO,
-  TU: RRule.TU,
-  WE: RRule.WE,
-  TH: RRule.TH,
-  FR: RRule.FR,
-  SA: RRule.SA,
-  SU: RRule.SU,
-};
-function buildEventRRule(
-  rule: {
-    frequency: string;
-    interval?: number | null;
-    by_weekdays?: string[] | null;
-    by_month_day?: number | null;
-    by_set_position?: number[] | null;
-    until?: string | null;
-    count?: number | null;
-  },
-  startDate: string,
-): RRule {
-  const options: Partial<Options> = {
-    freq: FREQ_MAP[rule.frequency.toUpperCase()] ?? RRule.WEEKLY,
-    dtstart: new Date(startDate),
-  };
-  if (rule.interval && rule.interval > 1) options.interval = rule.interval;
-  if (rule.by_weekdays?.length) {
-    options.byweekday = rule.by_weekdays
-      .map((d) => WEEKDAY_MAP[d.toUpperCase()])
-      .filter((w): w is Weekday => w !== undefined);
-  }
-  if (rule.by_month_day) options.bymonthday = rule.by_month_day;
-  if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
-  if (rule.until) options.until = new Date(rule.until);
-  if (rule.count) options.count = rule.count;
-  return new RRule(options);
-}
-import { ClientSecretCredential } from "@azure/identity";
-import { Client } from "@microsoft/microsoft-graph-client";
-import { TokenCredentialAuthenticationProvider } from "@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials";
+import { cache, Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import GalleryViewer from "../../../components/expandableImage";
-export default async function EventDetails({
-  params,
-}: Readonly<{
+import { notFound, redirect } from "next/navigation";
+import {
+  getEventsBySlug,
+  getEventSelection,
+} from "../../../lib/public-content";
+import { EventDetailParams } from "../../schemas/events";
+import EventPoster from "../../../components/eventPoster";
+import EventGallery from "../../../components/eventGallery";
+import EventSessions from "../../../components/eventSessions";
+import EventSelectedSchedule from "../../../components/eventSelectedSchedule";
+import SessionDetails from "../../../components/sessionDetails";
+import EventLocation from "../../../components/eventLocation";
+import CTALink from "../../../components/CTALink";
+import { eventHref, formatEventTime } from "../../../lib/events";
+import { SITE_ORIGIN } from "../../../lib/site";
+
+type Props = Readonly<{
   params: Promise<{ slug: string }>;
-}>) {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>;
+
+// Share the published event lookup between metadata and rendering within a request.
+const getEvent = cache(async (slug: string) => {
+  const events = await getEventsBySlug(slug);
+  if (!events.length) notFound();
+  if (events.length !== 1)
+    throw new Error("Duplicate event slug requires reconciliation.");
+  return events[0];
+});
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const event = (await fetchOneEvent({ slug })).data?.data[0];
-  if (!event) {
-    const similar = ((await fetchSimilarEvents({ slug })).data?.data ??
-      []) as SimilarEvent[];
-    return (
-      <div className="w-full min-h-[77dvh] flex flex-col justify-center items-center px-8 py-16 gap-10">
-        <div className="text-center">
-          <h1 className="text-3xl font-semibold">
-            We couldn&apos;t find that event.
-          </h1>
-          {similar.length > 0 && (
-            <p className="mt-3 text-lg text-text-muted">
-              {similar.length === 1
-                ? "Perhaps you meant to navigate to this one?"
-                : "Perhaps you meant to navigate to one of these?"}
-            </p>
+  const event = await getEvent(slug);
+  const description =
+    event.description?.replace(/\s+/g, " ").trim() ||
+    `View dates, times and details for ${event.title} at the Waterdown Muslim Community Centre.`;
+  const title = `${event.title} | WMCC`;
+  const canonical = `${SITE_ORIGIN}/events/${encodeURIComponent(slug)}`;
+  const images = event.poster_url
+    ? [{ url: event.poster_url, alt: event.poster_alt || event.title }]
+    : [];
+
+  return {
+    title: event.title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      siteName: "WMCC",
+      url: canonical,
+      title,
+      description,
+      images,
+    },
+    twitter: {
+      card: event.poster_url ? "summary_large_image" : "summary",
+      title,
+      description,
+      images,
+    },
+  };
+}
+
+export default async function EventPage({ params, searchParams }: Props) {
+  const { slug } = await params;
+  const parsed = EventDetailParams.safeParse(await searchParams);
+  if (!parsed.success) notFound();
+  const search = parsed.data;
+  const event = await getEvent(slug);
+  const selection = await getEventSelection(
+    event,
+    search.schedule,
+    search.session,
+  );
+  if (!selection) notFound();
+  if (selection.redirectScheduleId) {
+    const target = eventHref(slug, search.session, selection.redirectScheduleId);
+    redirect(`${target}&page=${search.page}`);
+  }
+  const { session, schedule } = selection;
+  const poster = schedule?.poster_url ? schedule : event;
+  const displayed = session ?? poster;
+  const location = session?.location ?? schedule?.location ?? event.location;
+
+  return (
+    <main className="max-w-5xl mx-auto p-6">
+      <Link href="/events" className="underline">
+        ← Back to events
+      </Link>
+      <h1 className="text-3xl my-6">{event.title}</h1>
+      <div className="grid sm:grid-cols-2 gap-6">
+        <EventPoster
+          src={displayed.poster_url || "/wmcc-black.png"}
+          alt={displayed.poster_alt ?? event.title}
+          height={700}
+          width={800}
+          className="rounded-xl object-contain"
+        />
+        <div>
+          <p className="text-xl whitespace-pre-wrap">{event.description}</p>
+          <EventLocation location={location} />
+          {event.call_to_action_link && (
+            <CTALink href={event.call_to_action_link}>
+              {event.call_to_action_caption || "Learn more"}
+            </CTALink>
           )}
         </div>
-        {similar.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            {similar.map((ev) => (
-              <Link
-                key={ev.id}
-                href={`/events/${ev.navigation_slug}`}
-                className="border rounded-xl p-4 w-full sm:w-64 hover:shadow-lg transition-shadow flex flex-col gap-3"
-              >
-                {ev.poster_url && (
-                  <Image
-                    src={ev.poster_url}
-                    alt={ev.poster_alt ?? ""}
-                    width={240}
-                    height={160}
-                    className="rounded-lg object-cover w-full"
-                  />
-                )}
-                <p className="font-semibold text-lg leading-snug">{ev.title}</p>
-                <p className="text-sm text-text-muted">{ev.location}</p>
-                <p className="text-sm text-text-muted">
-                  {new Date(ev.start_date).toLocaleString("en-CA", {
-                    timeZone: "America/Toronto",
-                    dateStyle: "medium",
-                  })}
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
-    );
-  }
-  let displayDate: string = event.start_date as string;
-  let occurrenceLabel = "";
-  if (event.recurrence_rule_id && event.recurrence_rule) {
-    const rule = Array.isArray(event.recurrence_rule)
-      ? event.recurrence_rule[0]
-      : event.recurrence_rule;
-    if (rule) {
-      const now = new Date();
-      const r = buildEventRRule(
-        rule as Parameters<typeof buildEventRRule>[0],
-        event.start_date as string,
-      );
-      const next = r.after(now, true);
-      const last = r.before(now, false);
-      if (next) {
-        displayDate = next.toISOString();
-        occurrenceLabel = "Next occurrence";
-      } else if (last) {
-        displayDate = last.toISOString();
-        occurrenceLabel = "Last occurrence";
-      }
-    }
-  }
-
-  const apiKey = process.env.MAPS_API;
-  const googleMapsURL =
-    "https://www.google.com/maps/embed/v1/place?key=" +
-    apiKey +
-    `&q=${encodeURIComponent(event.location)}`;
-  let driveItem: { value: Record<string, string>[] } = { value: [] };
-  if (event.gallery_url) {
-    const credential = new ClientSecretCredential(
-      process.env.TENANT_ID!,
-      process.env.CLIENT_ID!,
-      process.env.CLIENT_SECRET!,
-    );
-    const shareUrl = event.gallery_url;
-    const encodedUrl = encodeSharingUrl(shareUrl);
-    const authProvider = new TokenCredentialAuthenticationProvider(credential, {
-      scopes: ["https://graph.microsoft.com/.default"],
-    });
-    const graphClient = Client.initWithMiddleware({
-      authProvider: authProvider,
-    });
-    driveItem = await graphClient
-      .api(`/shares/${encodedUrl}/driveItem/children`)
-      .get();
-  }
-
-  const galleryImages = driveItem.value.filter((item) =>
-    /\.(jpg|jpeg|png)$/i.test(item.name ?? ""),
-  );
-
-  return (
-    <div>
-      <div className="px-6 py-3 bg-[var(--main-colour-blue)]">
-        <Link href="/events" className="btn-nav inline-flex items-center gap-1 text-sm">
-          ← Back to events
-        </Link>
-      </div>
-      <div className="sm:py-10 sm:px-5 flex flex-col items-center bg-[var(--main-colour-blue)]">
-        <div className="sm:border sm:rounded-2xl sm:shadow-lg bg-near-black sm:bg-white">
-          <div className="hidden sm:block sm:pt-5">
-            <h1 className="text-center">{event.title}</h1>
-          </div>
-          <div className={`sm:py-5 max-w-4xl ${event.poster_url ? "sm:grid sm:grid-cols-2" : ""}`}>
-            {event.poster_url && (
-              <div className="p-3 sm:col-span-1">
-                <Image
-                  className="rounded-2xl shadow-lg sm:shadow-none"
-                  src={event.poster_url}
-                  alt={event.poster_alt || event.title}
-                  height={700}
-                  width={800}
-                />
-              </div>
-            )}
-            <div className="p-4 col-span-1 text-white sm:text-black sm:bg-white bg-main-blue">
-              <h1 className="block sm:hidden text-center py-3">
-                {event.title}
-              </h1>
-              <p className="text-xl whitespace-pre-wrap">{event.description}</p>
-              <div className="py-4">
-                <h3>Event Location</h3>
-                <p>{event.location}</p>
-                <iframe
-                  title="googlemaps"
-                  className="w-full h-48"
-                  src={googleMapsURL}
-                ></iframe>
-                <p>
-                  {occurrenceLabel && (
-                    <span className="font-semibold">{occurrenceLabel}: </span>
-                  )}
-                  {new Date(displayDate).toLocaleString("en-CA", {
-                    timeZone: "America/Toronto",
-                    dateStyle: "full",
-                    timeStyle: "medium",
-                  })}
-                </p>
-                {event.recurrence_rule && (
-                  <p className="mt-1 italic">
-                    {buildRecurrenceString(
-                      event.recurrence_rule as unknown as {
-                        frequency: string;
-                        interval?: number | null;
-                        by_weekdays?: string[] | null;
-                        by_month_day?: number | null;
-                        by_set_position?: number[] | null;
-                      },
-                      occurrenceLabel === "Last occurrence",
-                    )}
-                  </p>
-                )}
-              </div>
-
-              {event.call_to_action_link && (
-                <CTALink
-                  href={event.call_to_action_link}
-
-                  className="text-xl"
-                >
-                  {event.call_to_action_caption}
-                </CTALink>
-              )}
+      {schedule && (
+        <section className="pt-8" aria-labelledby="selected-schedule-heading">
+          <h2 id="selected-schedule-heading" className="text-2xl mb-4">
+            Selected schedule
+          </h2>
+          {schedule.label && <p className="text-xl mb-4">{schedule.label}</p>}
+          {schedule.cancelled && (
+            <output className="block mb-4">
+              This schedule has been cancelled.
+            </output>
+          )}
+          {session && <SessionDetails session={session} />}
+          {!session && (
+            <div>
+              <p>
+                First session:{" "}
+                <time dateTime={schedule.start_at}>
+                  {formatEventTime(schedule.start_at)}
+                </time>
+              </p>
+              <p>
+                Ends{" "}
+                <time dateTime={schedule.end_at}>
+                  {formatEventTime(schedule.end_at)}
+                </time>
+              </p>
             </div>
-          </div>
-        </div>
-      </div>
-      {galleryImages.length > 0 && (
-        <div className="p-10">
-          <h2 className="mb-5">See our memorable moments from this event</h2>
-          <GalleryViewer
-            images={galleryImages.map((item) => ({
-              src: item["@microsoft.graph.downloadUrl"],
-              alt: item.name ?? "Gallery image",
-            }))}
-          />
-        </div>
+          )}
+          <Suspense
+            key={session?.id ?? schedule.id}
+            fallback={
+              <output className="block py-6">Loading next occurrence…</output>
+            }
+          >
+            <EventSelectedSchedule schedule={schedule} session={session} />
+          </Suspense>
+        </section>
       )}
-    </div>
-  );
-}
-function buildRecurrenceString(
-  rule: {
-    frequency: string;
-    interval?: number | null;
-    by_weekdays?: string[] | null;
-    by_month_day?: number | null;
-    by_set_position?: number[] | null;
-  },
-  terminated = false,
-): string {
-  const DAY_MAP: Record<string, string> = {
-    MO: "Monday",
-    TU: "Tuesday",
-    WE: "Wednesday",
-    TH: "Thursday",
-    FR: "Friday",
-    SA: "Saturday",
-    SU: "Sunday",
-  };
-  const ORDINAL_MAP: Record<string, string> = {
-    "1": "first",
-    "2": "second",
-    "3": "third",
-    "4": "fourth",
-    "-1": "last",
-  };
-
-  const freq = rule.frequency?.toUpperCase();
-  const interval = rule.interval && rule.interval > 1 ? rule.interval : null;
-
-  const freqLabel: Record<string, [string, string]> = {
-    DAILY: ["day", "days"],
-    WEEKLY: ["week", "weeks"],
-    MONTHLY: ["month", "months"],
-    YEARLY: ["year", "years"],
-  };
-  const [singular, plural] = freqLabel[freq] ?? [
-    freq.toLowerCase(),
-    freq.toLowerCase() + "s",
-  ];
-  let base = interval ? `every ${interval} ${plural}` : `every ${singular}`;
-
-  if (rule.by_set_position?.length && rule.by_weekdays?.length) {
-    const pos =
-      ORDINAL_MAP[String(rule.by_set_position[0])] ??
-      `${rule.by_set_position[0]}${ordinalSuffix(rule.by_set_position[0])}`;
-    const days = rule.by_weekdays
-      .map((d) => DAY_MAP[d.toUpperCase()] ?? d)
-      .join(" and ");
-    base += ` on the ${pos} ${days}`;
-  } else if (rule.by_weekdays?.length) {
-    const days = rule.by_weekdays.map((d) => DAY_MAP[d.toUpperCase()] ?? d);
-    const joined =
-      days.length > 1
-        ? days.slice(0, -1).join(", ") + " and " + days[days.length - 1]
-        : days[0];
-    base += ` on ${joined}`;
-  } else if (rule.by_month_day) {
-    base += ` on the ${rule.by_month_day}${ordinalSuffix(rule.by_month_day)}`;
-  }
-
-  return (terminated ? "Happened " : "Happens ") + base;
-}
-
-function ordinalSuffix(n: number): string {
-  const abs = Math.abs(n);
-  if (abs % 100 >= 11 && abs % 100 <= 13) return "th";
-  return ["th", "st", "nd", "rd"][abs % 10] ?? "th";
-}
-
-function encodeSharingUrl(url: string) {
-  return (
-    "u!" +
-    Buffer.from(url)
-      .toString("base64")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "")
+      {!schedule && (
+        <output className="block py-8">No upcoming sessions scheduled.</output>
+      )}
+      <details className="my-6" open={search.page > 1}>
+        <summary className="cursor-pointer text-xl">
+          Browse all dates and schedules
+        </summary>
+        <Suspense
+          fallback={<output className="block py-8">Loading sessions…</output>}
+        >
+          <EventSessions
+            event={event}
+            page={search.page}
+            selectedSessionId={session?.id}
+            selectedScheduleId={schedule?.id}
+          />
+        </Suspense>
+      </details>
+      {event.gallery_url && (
+        <Suspense fallback={<output>Loading gallery…</output>}>
+          <EventGallery url={event.gallery_url} />
+        </Suspense>
+      )}
+    </main>
   );
 }

@@ -1,147 +1,21 @@
-import CarouselComponent from "../components/Carousel";
+import { Suspense } from "react";
 import MasjidboxWidget from "../components/Masjidbox";
-import EventPill from "../components/eventPill";
 import Image from "next/image";
 import CTALink from "../components/CTALink";
-import { createClient } from "../utils/supabase/server";
 import { headers } from "next/headers";
-import { RRule, Weekday, Options } from "rrule";
-import { RecurrenceRule, RecurringBaseEvent } from "../app/schemas/events";
+import HomeAnnouncements from "../components/homeAnnouncements";
+import HomeEvents from "../components/homeEvents";
 
-const FREQ_MAP: Record<string, number> = {
-  DAILY: RRule.DAILY,
-  WEEKLY: RRule.WEEKLY,
-  MONTHLY: RRule.MONTHLY,
-  YEARLY: RRule.YEARLY,
-};
-
-const WEEKDAY_MAP: Record<string, Weekday> = {
-  MO: RRule.MO,
-  TU: RRule.TU,
-  WE: RRule.WE,
-  TH: RRule.TH,
-  FR: RRule.FR,
-  SA: RRule.SA,
-  SU: RRule.SU,
-};
-
-function getNextOccurrences(event: RecurringBaseEvent, now: Date, limit = 5): Date[] {
-  try {
-    const rule: RecurrenceRule | null = Array.isArray(event.recurrence_rule)
-      ? event.recurrence_rule[0]
-      : event.recurrence_rule;
-    if (!rule) return [];
-
-    const options: Partial<Options> = {
-      freq: FREQ_MAP[rule.frequency.toUpperCase()] ?? RRule.WEEKLY,
-      dtstart: new Date(event.start_date),
-    };
-    if (rule.interval && rule.interval > 1) options.interval = rule.interval;
-    if (rule.by_weekdays?.length) {
-      options.byweekday = rule.by_weekdays
-        .map((d) => WEEKDAY_MAP[d.toUpperCase()])
-        .filter((w): w is Weekday => w !== undefined);
-    }
-    if (rule.by_month_day) options.bymonthday = rule.by_month_day;
-    if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
-    if (rule.until) options.until = new Date(rule.until);
-    if (rule.count) options.count = rule.count;
-
-    const r = new RRule(options);
-    const farFuture = new Date(now);
-    farFuture.setFullYear(farFuture.getFullYear() + 2);
-    return r.between(now, farFuture, true).slice(0, limit);
-  } catch {
-    return [];
-  }
-}
-
-export interface Announcement {
-  id: number;
-  title: string;
-  description: string;
-  poster_url: string;
-  call_to_action_link: string;
-  poster_alt: string;
-  call_to_action_caption: string;
-}
-export interface UpcomingEvent {
-  id: number;
-  navigation_slug: string;
-  poster_url: string | null;
-  poster_alt: string | null;
-  title: string;
-  start_date: string;
-  location: string;
-  call_to_action_caption: string | null;
-  call_to_action_link: string | null;
-}
 export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
-  const supabase = await createClient();
-  const today = new Date();
-  let slides: Announcement[] = [];
-  let currentEvents: UpcomingEvent[] = [];
-  try {
-    const [announcementsRes, nonRecurringRes, recurringRes] = await Promise.all(
-      [
-        supabase
-          .from("announcements")
-          .select(
-            "id,title,description,poster_url,call_to_action_link,poster_alt,call_to_action_caption",
-          )
-          .gt("expires_at", today.toISOString()),
-        supabase
-          .from("events")
-          .select(
-            "id, navigation_slug, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link",
-          )
-          .is("recurrence_rule_id", null)
-          .not("navigation_slug", "is", null)
-          .gte("start_date", today.toISOString())
-          .order("start_date", { ascending: true }),
-        supabase
-          .from("events")
-          .select(
-            "id, navigation_slug, poster_url, poster_alt, title, start_date, location, call_to_action_caption, call_to_action_link, recurrence_rule_id, recurrence_rule(frequency, interval, by_weekdays, by_month_day, by_set_position, until, count)",
-          )
-          .not("recurrence_rule_id", "is", null)
-          .not("navigation_slug", "is", null),
-      ],
-    );
-
-    slides = announcementsRes.data || [];
-
-    const recurringData: RecurringBaseEvent[] = (recurringRes.data ?? []) as RecurringBaseEvent[];
-    const recurringUpcoming: UpcomingEvent[] = recurringData
-      .flatMap((event) =>
-        getNextOccurrences(event, today, 5).map((next) => ({
-          id: event.id,
-          navigation_slug: event.navigation_slug,
-          poster_url: event.poster_url,
-          poster_alt: event.poster_alt,
-          title: event.title,
-          start_date: next.toISOString(),
-          location: event.location,
-          call_to_action_caption: event.call_to_action_caption,
-          call_to_action_link: event.call_to_action_link,
-        })),
-      );
-
-    currentEvents = [...(nonRecurringRes.data ?? []) as UpcomingEvent[], ...recurringUpcoming]
-      .sort(
-        (a, b) =>
-          new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
-      )
-      .slice(0, 5);
-  } catch (error) {
-    console.error(error);
-  }
-
   return (
     <div>
       <section>
-        <CarouselComponent content={slides}></CarouselComponent>
+        <Suspense
+          fallback={<output className="p-8">Loading announcements…</output>}
+        >
+          <HomeAnnouncements />
+        </Suspense>
       </section>
       <section>
         <MasjidboxWidget xnonceHeader={xnonceHeader} />
@@ -179,9 +53,7 @@ export default async function Home() {
                 the beauty and purpose of living a balanced Islamic life.
               </p>
               <div className="mt-6">
-                <CTALink href="/about">
-                  Learn more about WMCC
-                </CTALink>
+                <CTALink href="/about">Learn more about WMCC</CTALink>
               </div>
             </div>
           </div>
@@ -190,32 +62,13 @@ export default async function Home() {
       <section>
         <div className="border-t-4 w-full px-8 py-14 ">
           <h1 className="text-4xl">Current and upcoming events</h1>
-          {currentEvents?.length ? (
-            <div className="flex flex-col sm:flex-row sm:overflow-x-scroll py-10">
-              {currentEvents?.map((upcomingEvent) => (
-                <div
-                  key={`${upcomingEvent.id}-${upcomingEvent.start_date}`}
-                  className="m-2"
-                >
-                  <EventPill upcomingEvent={upcomingEvent}></EventPill>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex justify-center py-10">
-              <div className="bg-warning flex items-center px-5 py-10 border-t-slate-400 rounded-2xl">
-                <Image
-                  src="/wmcc-black.png"
-                  alt="wmcc white logo"
-                  height="80"
-                  width="80"
-                />
-                <h2 className="text-2xl px-5">
-                  There are no upcoming events at this time, but stay tuned!
-                </h2>
-              </div>
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <output className="py-10">Loading upcoming events…</output>
+            }
+          >
+            <HomeEvents />
+          </Suspense>
         </div>
       </section>
       <section>
