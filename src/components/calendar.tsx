@@ -2,179 +2,125 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
-import rrulePlugin from "@fullcalendar/rrule";
 import luxonPlugin from "@fullcalendar/luxon3";
-import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
-import { useEffect, useRef, useState } from "react";
+import type { EventInput, EventContentArg } from "@fullcalendar/core";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
-import Loading from "./loading";
-import { EventImpl } from "@fullcalendar/core/internal";
-import { fetchEvents, fetchRecurringBaseEvents } from "../actions/events";
-import { RecurringBaseEvent, RecurrenceRule } from "../app/schemas/events";
+import { fetchEvents } from "../actions/events";
+import type { EventOccurrence } from "../app/schemas/events";
+import { EVENT_TIME_ZONE } from "../lib/events";
 
-function toFloatingToronto(isoDate: string): string {
-  const date = new Date(isoDate);
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Toronto",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
-  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
-}
-
-interface FCRRuleInput {
-  freq: string;
-  dtstart: string;
-  interval?: number;
-  byweekday?: string[];
-  bymonthday?: number;
-  bysetpos?: number[];
-  until?: string;
-  count?: number;
-}
-
-function buildRRuleObj(dtstart: string, rule: RecurrenceRule): FCRRuleInput {
-  const options: FCRRuleInput = {
-    freq: rule.frequency.toUpperCase(),
-    dtstart: toFloatingToronto(dtstart),
-  };
-  if (rule.interval && rule.interval > 1) options.interval = rule.interval;
-  if (rule.by_weekdays?.length) options.byweekday = rule.by_weekdays;
-  if (rule.by_month_day) options.bymonthday = rule.by_month_day;
-  if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
-  if (rule.until) options.until = toFloatingToronto(rule.until);
-  if (rule.count) options.count = rule.count;
-  return options;
-}
-
-function calcDuration(start: string, end: string): string {
-  const ms = new Date(end).getTime() - new Date(start).getTime();
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
+type CalendarRange = { start: Date; end: Date };
+type LoadState = "loading" | "error" | "success";
 
 export default function Calendar() {
-  const [event, setEvent] = useState<EventImpl | null>(null);
-  const [regularEvents, setRegularEvents] = useState<EventInput[]>([]);
-  const [recurringEvents, setRecurringEvents] = useState<EventInput[]>([]);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [calendarLoading, setCalendarLoading] = useState(true);
-  const [toolbarHeader, setToolbarHeader] = useState({
-    start: "prev,next",
-    center: "title",
-    end: "dayGridMonth,dayGridWeek",
-  });
+  const [selected, setSelected] = useState<EventOccurrence | null>(null);
+  const [sessions, setSessions] = useState<EventOccurrence[]>([]);
+  const [state, setState] = useState<LoadState>("loading");
+  const [mobile, setMobile] = useState(false);
   const calendarRef = useRef<FullCalendar | null>(null);
-
-  function handleResize() {
-    const calendarApi = calendarRef.current?.getApi?.();
-    if (!calendarApi) {
-      return;
-    }
-    if (window.innerWidth > 500) {
-      setToolbarHeader({
-        start: "prev,next",
-        center: "title",
-        end: "dayGridMonth,dayGridWeek",
-      });
-      if (
-        calendarApi.view.type !== "dayGridMonth" &&
-        calendarApi.view.type !== "dayGridWeek"
-      ) {
-        calendarApi.changeView("dayGridMonth");
-      }
-    } else {
-      setToolbarHeader({
-        start: "title",
-        center: "",
-        end: "prev,next",
-      });
-      if (calendarApi.view.type !== "listMonth") {
-        calendarApi.changeView("listMonth");
-      }
-    }
-  }
+  const requestId = useRef(0);
+  const rangeRef = useRef<CalendarRange | null>(null);
 
   useEffect(() => {
-    window.addEventListener("resize", handleResize, { passive: true });
-    handleResize();
+    const requests = requestId;
+    const media = window.matchMedia("(max-width: 500px)");
+    const resize = () => {
+      setMobile(media.matches);
+      calendarRef.current
+        ?.getApi()
+        .changeView(media.matches ? "listMonth" : "dayGridMonth");
+    };
+    resize();
+    media.addEventListener("change", resize);
     return () => {
-      window.removeEventListener("resize", handleResize);
+      media.removeEventListener("change", resize);
+      requests.current++;
     };
   }, []);
 
-  useEffect(() => {
-    fetchRecurringBaseEvents({}).then((result) => {
-      const data: RecurringBaseEvent[] = (result?.data?.data ?? []) as RecurringBaseEvent[];
-      const rruleInputs: EventInput[] = data
-        .map((ev) => {
-          const rule = Array.isArray(ev.recurrence_rule)
-            ? ev.recurrence_rule[0]
-            : ev.recurrence_rule;
-          if (!rule) return null;
-          return {
-            ...ev,
-            id: String(ev.id),
-            rrule: buildRRuleObj(ev.start_date, rule),
-            duration: calcDuration(ev.start_date, ev.end_date),
-            exdate: rule.exdates?.map(toFloatingToronto) ?? [],
-          };
-        })
-        .filter(Boolean) as EventInput[];
-      setRecurringEvents(rruleInputs);
-    });
+  const loadRange = useCallback(async (range: CalendarRange) => {
+    rangeRef.current = range;
+    const current = ++requestId.current;
+    setState("loading");
+    setSessions([]);
+    try {
+      const result = await fetchEvents({ start: range.start, end: range.end });
+      if (current !== requestId.current) return;
+      if (result.error || !result.data) {
+        setState("error");
+        return;
+      }
+      setSessions(result.data);
+      setState("success");
+    } catch {
+      if (current === requestId.current) setState("error");
+    }
   }, []);
 
-  function handleEventClick(event: EventClickArg) {
-    setEvent(event.event);
-    setModalIsOpen(true);
+  function renderEvent(arg: EventContentArg) {
+    const session = arg.event.extendedProps.session as EventOccurrence;
+    return (
+      <button
+        type="button"
+        className="w-full text-left whitespace-normal"
+        onClick={() => setSelected(session)}
+        aria-label={`View ${arg.event.title}, ${arg.timeText}`}
+      >
+        {arg.timeText} {arg.event.title}
+      </button>
+    );
   }
 
-  async function handleDatesSet(args: { start: Date; end: Date }) {
-    const { start, end } = args;
-    setCalendarLoading(true);
-    const fetchedEvents = await fetchEvents({ start, end });
-    const data = fetchedEvents.data?.data ?? [];
-    const mappedEvents: EventInput[] = data.map((ev) => ({
-      ...ev,
-      start: ev.start_date,
-      end: ev.end_date,
-    }));
-    setRegularEvents(mappedEvents);
-    setCalendarLoading(false);
-  }
+  const events: EventInput[] = sessions.map((session) => ({
+    id: session.id,
+    title: session.title,
+    start: session.start_at,
+    end: session.end_at,
+    extendedProps: { session },
+  }));
+  const toolbar = mobile
+    ? { start: "title", center: "", end: "prev,next" }
+    : { start: "prev,next", center: "title", end: "dayGridMonth,dayGridWeek" };
 
   return (
     <>
-      {calendarLoading && <Loading></Loading>}
-      <EventModal
-        event={event}
-        modalIsOpen={modalIsOpen}
-        closeModal={() => setModalIsOpen(false)}
-      ></EventModal>
-
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[dayGridPlugin, listPlugin, rrulePlugin, luxonPlugin]}
-        loading={(loading) => {
-          setCalendarLoading(loading);
-        }}
-        initialView="dayGridMonth"
-        headerToolbar={toolbarHeader}
-        height={"calc(100dvh - 100px)"}
-        events={[...recurringEvents, ...regularEvents]}
-        eventClassNames={"hover:cursor-pointer"}
-        eventClick={handleEventClick}
-        datesSet={handleDatesSet}
-        windowResizeDelay={100}
-      />
+      <div className="min-h-12 p-2" aria-live="polite">
+        {state === "loading" && <output>Loading events…</output>}
+        {state === "error" && (
+          <div role="alert">
+            <p>We couldn’t load events.</p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                if (rangeRef.current) void loadRange(rangeRef.current);
+              }}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+        {state === "success" && sessions.length === 0 && (
+          <p>No events are scheduled in this date range.</p>
+        )}
+      </div>
+      <EventModal event={selected} closeModal={() => setSelected(null)} />
+      <div aria-busy={state === "loading"}>
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, listPlugin, luxonPlugin]}
+          timeZone={EVENT_TIME_ZONE}
+          initialView="dayGridMonth"
+          headerToolbar={toolbar}
+          height="calc(100dvh - 160px)"
+          events={events}
+          eventContent={renderEvent}
+          datesSet={loadRange}
+          noEventsContent={state === "success" ? "No events scheduled." : " "}
+          windowResizeDelay={100}
+        />
+      </div>
     </>
   );
 }

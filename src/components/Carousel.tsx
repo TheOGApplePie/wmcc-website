@@ -1,189 +1,85 @@
 "use client";
-import { Announcement } from "../app/page";
+import type { Announcement } from "../app/schemas/events";
 import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
-import CTALink from "./CTALink";
+import AnnouncementSlide from "./announcementSlide";
 
-interface SlideshowProps {
-  content: Announcement[];
-}
-
-export default function CarouselComponent({ content }: SlideshowProps) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-
-  const nextSlide = useCallback(() => {
-    if (isTransitioning || content.length < 2) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentSlide((prev) => (prev + 1) % content.length);
-      setIsTransitioning(false);
-    }, 100);
-  }, [isTransitioning, content.length]);
-
-  const prevSlide = useCallback(() => {
-    if (isTransitioning || content.length < 2) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentSlide((prev) => (prev - 1 + content.length) % content.length);
-      setIsTransitioning(false);
-    }, 100);
-  }, [isTransitioning, content.length]);
-
-  const goToSlide = useCallback(
-    (index: number) => {
-      if (isTransitioning || index === currentSlide) return;
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentSlide(index);
-        setIsTransitioning(false);
-      }, 100);
+export default function CarouselComponent({
+  content,
+}: Readonly<{ content: Announcement[] }>) {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const index = Math.max(
+    0,
+    content.findIndex((slide) => slide.id === selectedId),
+  );
+  const move = useCallback(
+    (direction: number) => {
+      if (content.length < 2) return;
+      setSelectedId(
+        content[(index + direction + content.length) % content.length].id,
+      );
     },
-    [isTransitioning, currentSlide]
+    [content, index],
   );
 
-  // Auto-advance slides — stops when paused
   useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(nextSlide, 5000);
+    if (paused || hovered || content.length < 2) return;
+    const interval = setInterval(() => move(1), 5000);
     return () => clearInterval(interval);
-  }, [nextSlide, isPaused]);
+  }, [move, paused, hovered, content.length]);
 
-  if (content?.length) {
+  if (!content.length)
     return (
-      <div className="relative h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-dark-navy to-main-blue">
-        {/* Slides */}
-        {content.map((slide, index) => (
-          <div
-            key={index}
-            className={`grid grid-cols-1 ${
-              slide.poster_url ? "sm:grid-cols-2" : ""
-            } absolute inset-0 transition-all duration-500 ease-out transform ${
-              index === currentSlide
-                ? "opacity-100 translate-x-0"
-                : index < currentSlide
-                ? "opacity-0 -translate-x-full"
-                : "opacity-0 translate-x-full"
-            }`}
-          >
-            {slide.poster_url ? (
-              <>
-                <div
-                  className={`${
-                    slide.poster_url ? "hidden sm:flex" : "flex"
-                  } col-span-1 flex-col items-center justify-center p-8`}
-                >
-                  <div className="text-center max-w-md mb-6">
-                    <h1 className="text-5xl font-bold text-white mb-4">
-                      {slide.title}
-                    </h1>
-                    <h2 className="text-3xl font-bold text-white mb-4">
-                      {slide.description}
-                    </h2>
-                  </div>
-                  {slide.call_to_action_link && (
-                    <CTALink href={slide.call_to_action_link}>
-                      {slide.call_to_action_caption}
-                    </CTALink>
-                  )}
-                </div>
-
-                <div className="col-span-1 flex flex-col sm:flex-row items-center justify-center p-8">
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <Image
-                      src={slide.poster_url}
-                      alt={slide.poster_alt || `Slide ${index + 1}`}
-                      fill={true}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-contain rounded-lg"
-                      onError={(e) => {
-                        console.error(
-                          `Failed to load image: ${slide.poster_url}`
-                        );
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  </div>
-                  {slide.call_to_action_link && (
-                    <CTALink href={slide.call_to_action_link} className="sm:hidden">
-                      {slide.call_to_action_caption}
-                    </CTALink>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-8">
-                <div className="text-center max-w-md mb-6">
-                  <h2 className="text-5xl font-bold text-white mb-4">
-                    {slide.title}
-                  </h2>
-                  <h2 className="text-3xl font-bold text-white mb-4">
-                    {slide.description}
-                  </h2>
-                </div>
-                {slide.call_to_action_link && slide.call_to_action_caption && (
-                  <CTALink href={slide.call_to_action_link}>
-                    {slide.call_to_action_caption}
-                  </CTALink>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-
-        {/* Navigation buttons */}
-        <button
-          onClick={prevSlide}
-          disabled={isTransitioning}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Previous slide"
-        >
-          ‹
-        </button>
-        <button
-          onClick={nextSlide}
-          disabled={isTransitioning}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Next slide"
-        >
-          ›
-        </button>
-
-        {/* Pause / play */}
-        <button
-          onClick={() => setIsPaused((p) => !p)}
-          className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-300 text-sm"
-          aria-label={isPaused ? "Play slideshow" : "Pause slideshow"}
-        >
-          {isPaused ? "▶" : "⏸"}
-        </button>
-
-        {/* Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {content.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              disabled={isTransitioning}
-              className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${
-                index === currentSlide
-                  ? "bg-white"
-                  : "bg-white bg-opacity-50 hover:bg-opacity-75"
-              } ${isTransitioning ? "cursor-not-allowed" : "cursor-pointer"}`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div className="h-[calc(100dvh-120px)] overflow-hidden bg-gradient-to-r from-dark-navy to-main-blue flex items-center justify-center">
-        <p className="text-white text-4xl text-center">
+      <div className="min-h-64 bg-main-blue text-white p-12">
+        <output className="text-3xl text-center">
           There are no announcements just yet. But stay tuned!
-        </p>
+        </output>
       </div>
     );
-  }
+
+  return (
+    <section
+      aria-label="Announcements"
+      aria-roledescription="carousel"
+      className="relative min-h-[calc(100dvh-120px)] bg-gradient-to-r from-dark-navy to-main-blue pb-20"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setPaused(true)}
+    >
+      <div className="min-h-[65dvh]" aria-live={paused ? "polite" : "off"}>
+        <AnnouncementSlide slide={content[index]} />
+      </div>
+      {content.length > 1 && (
+        <div className="flex flex-wrap justify-center items-center gap-4 text-white px-4">
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            className="btn-primary"
+            aria-label="Previous announcement"
+          >
+            Previous
+          </button>
+          <p>
+            {index + 1} of {content.length}
+          </p>
+          <button
+            type="button"
+            onClick={() => move(1)}
+            className="btn-primary"
+            aria-label="Next announcement"
+          >
+            Next
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaused((value) => !value)}
+            className="btn-primary"
+          >
+            {paused ? "Play slideshow" : "Pause slideshow"}
+          </button>
+        </div>
+      )}
+    </section>
+  );
 }
