@@ -1,6 +1,6 @@
 "use server";
 import { EventParams } from "../app/schemas/events";
-import { getSimilarEvents, getSessionsInRange } from "../lib/public-content";
+import { getSimilarEvents, getCalendarEvents } from "../lib/public-content";
 
 export async function fetchEvents(input: { start: Date; end: Date }) {
   const parsed = EventParams.safeParse(input);
@@ -9,7 +9,7 @@ export async function fetchEvents(input: { start: Date; end: Date }) {
   try {
     return {
       error: null,
-      data: await getSessionsInRange(parsed.data.start, parsed.data.end),
+      data: await getCalendarEvents(),
     };
   } catch {
     return { error: "We couldn’t load events. Please try again.", data: null };

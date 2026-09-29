@@ -1,6 +1,6 @@
+import Loading from "../../../components/loading";
 import { cache, Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
   getEventsBySlug,
@@ -9,7 +9,6 @@ import {
 import { EventDetailParams } from "../../schemas/events";
 import EventPoster from "../../../components/eventPoster";
 import EventGallery from "../../../components/eventGallery";
-import EventSessions from "../../../components/eventSessions";
 import EventSelectedSchedule from "../../../components/eventSelectedSchedule";
 import SessionDetails from "../../../components/sessionDetails";
 import EventLocation from "../../../components/eventLocation";
@@ -87,9 +86,9 @@ export default async function EventPage({ params, searchParams }: Props) {
 
   return (
     <main className="max-w-5xl mx-auto p-6">
-      <Link href="/events" className="underline">
+      <CTALink href="/events">
         ← Back to events
-      </Link>
+      </CTALink>
       <h1 className="text-3xl my-6">{event.title}</h1>
       <div className="grid sm:grid-cols-2 gap-6">
         <EventPoster
@@ -140,7 +139,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           <Suspense
             key={session?.id ?? schedule.id}
             fallback={
-              <output className="block py-6">Loading next occurrence…</output>
+              <Loading inline label="Loading next occurrence…" />
             }
           >
             <EventSelectedSchedule schedule={schedule} session={session} />
@@ -150,23 +149,8 @@ export default async function EventPage({ params, searchParams }: Props) {
       {!schedule && (
         <output className="block py-8">No upcoming sessions scheduled.</output>
       )}
-      <details className="my-6" open={search.page > 1}>
-        <summary className="cursor-pointer text-xl">
-          Browse all dates and schedules
-        </summary>
-        <Suspense
-          fallback={<output className="block py-8">Loading sessions…</output>}
-        >
-          <EventSessions
-            event={event}
-            page={search.page}
-            selectedSessionId={session?.id}
-            selectedScheduleId={schedule?.id}
-          />
-        </Suspense>
-      </details>
       {event.gallery_url && (
-        <Suspense fallback={<output>Loading gallery…</output>}>
+        <Suspense fallback={<Loading inline label="Loading gallery…" />}>
           <EventGallery url={event.gallery_url} />
         </Suspense>
       )}

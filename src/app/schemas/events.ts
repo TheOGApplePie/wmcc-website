@@ -62,3 +62,25 @@ export const EventDetailParams = z.object({
   session: z.uuid().optional(),
   page: z.coerce.number().int().min(1).max(10000).default(1),
 });
+
+export interface RecurrenceRule {
+  frequency: string;
+  interval?: number | null;
+  by_weekdays?: string[] | null;
+  by_month_day?: number | null;
+  by_set_position?: number[] | null;
+  until?: string | null;
+  count?: number | null;
+  exdates?: string[] | null;
+}
+
+export interface CalendarSchedule extends PublicSchedule {
+  time_zone: string;
+  recurrence_rule: RecurrenceRule | null;
+}
+
+export interface CalendarEvent extends PublicEvent {
+  event_schedules: CalendarSchedule[];
+}
+
+export type CalendarSelection = Omit<EventOccurrence, "id">;

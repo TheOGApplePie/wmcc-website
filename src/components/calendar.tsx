@@ -1,5 +1,8 @@
 "use client";
+import Loading from "./loading";
 import FullCalendar from "@fullcalendar/react";
+import rrulePlugin from "@fullcalendar/rrule";
+import { calendarEventInputs } from "../lib/calendar-events";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
 import luxonPlugin from "@fullcalendar/luxon3";
@@ -7,15 +10,15 @@ import type { EventInput, EventContentArg } from "@fullcalendar/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import EventModal from "./eventModal";
 import { fetchEvents } from "../actions/events";
-import type { EventOccurrence } from "../app/schemas/events";
+import type { CalendarEvent, CalendarSelection } from "../app/schemas/events";
 import { EVENT_TIME_ZONE } from "../lib/events";
 
 type CalendarRange = { start: Date; end: Date };
 type LoadState = "loading" | "error" | "success";
 
 export default function Calendar() {
-  const [selected, setSelected] = useState<EventOccurrence | null>(null);
-  const [sessions, setSessions] = useState<EventOccurrence[]>([]);
+  const [selected, setSelected] = useState<CalendarSelection | null>(null);
+  const [baseEvents, setBaseEvents] = useState<CalendarEvent[]>([]);
   const [state, setState] = useState<LoadState>("loading");
   const [mobile, setMobile] = useState(false);
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -43,7 +46,7 @@ export default function Calendar() {
     rangeRef.current = range;
     const current = ++requestId.current;
     setState("loading");
-    setSessions([]);
+    setBaseEvents([]);
     try {
       const result = await fetchEvents({ start: range.start, end: range.end });
       if (current !== requestId.current) return;
@@ -51,7 +54,7 @@ export default function Calendar() {
         setState("error");
         return;
       }
-      setSessions(result.data);
+      setBaseEvents(result.data);
       setState("success");
     } catch {
       if (current === requestId.current) setState("error");
@@ -59,7 +62,12 @@ export default function Calendar() {
   }, []);
 
   function renderEvent(arg: EventContentArg) {
-    const session = arg.event.extendedProps.session as EventOccurrence;
+    const selection = arg.event.extendedProps.selection as CalendarSelection;
+    const session = {
+      ...selection,
+      start_at: arg.event.start?.toISOString() ?? selection.start_at,
+      end_at: arg.event.end?.toISOString() ?? selection.end_at,
+    };
     return (
       <button
         type="button"
@@ -72,13 +80,7 @@ export default function Calendar() {
     );
   }
 
-  const events: EventInput[] = sessions.map((session) => ({
-    id: session.id,
-    title: session.title,
-    start: session.start_at,
-    end: session.end_at,
-    extendedProps: { session },
-  }));
+  const events: EventInput[] = calendarEventInputs(baseEvents);
   const toolbar = mobile
     ? { start: "title", center: "", end: "prev,next" }
     : { start: "prev,next", center: "title", end: "dayGridMonth,dayGridWeek" };
@@ -86,7 +88,7 @@ export default function Calendar() {
   return (
     <>
       <div className="min-h-12 p-2" aria-live="polite">
-        {state === "loading" && <output>Loading events…</output>}
+        {state === "loading" && <Loading label="Loading events…" />}
         {state === "error" && (
           <div role="alert">
             <p>We couldn’t load events.</p>
@@ -101,7 +103,7 @@ export default function Calendar() {
             </button>
           </div>
         )}
-        {state === "success" && sessions.length === 0 && (
+        {state === "success" && events.length === 0 && (
           <p>No events are scheduled in this date range.</p>
         )}
       </div>
@@ -109,7 +111,7 @@ export default function Calendar() {
       <div aria-busy={state === "loading"}>
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, listPlugin, luxonPlugin]}
+          plugins={[dayGridPlugin, listPlugin, luxonPlugin, rrulePlugin]}
           timeZone={EVENT_TIME_ZONE}
           initialView="dayGridMonth"
           headerToolbar={toolbar}

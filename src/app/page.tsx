@@ -1,3 +1,4 @@
+import Loading from "../components/loading";
 import { Suspense } from "react";
 import MasjidboxWidget from "../components/Masjidbox";
 import Image from "next/image";
@@ -12,7 +13,7 @@ export default async function Home() {
     <div>
       <section>
         <Suspense
-          fallback={<output className="p-8">Loading announcements…</output>}
+          fallback={<Loading inline label="Loading announcements…" />}
         >
           <HomeAnnouncements />
         </Suspense>
@@ -64,7 +65,7 @@ export default async function Home() {
           <h1 className="text-4xl">Current and upcoming events</h1>
           <Suspense
             fallback={
-              <output className="py-10">Loading upcoming events…</output>
+              <Loading inline label="Loading upcoming events…" />
             }
           >
             <HomeEvents />

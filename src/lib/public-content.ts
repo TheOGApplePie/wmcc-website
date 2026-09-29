@@ -1,7 +1,9 @@
 import "server-only";
+import { upcomingEvents } from "./upcoming-events";
 import { createClient } from "../utils/supabase/server";
 import type {
   Announcement,
+  CalendarEvent,
   EventOccurrence,
   PublicEvent,
   PublicSchedule,
@@ -235,7 +237,10 @@ export async function getEventSelection(
   if (selectedId && !schedule) return null;
   // Validate the requested schedule before correcting a stale schedule/session pair.
   if (session && schedule && session.schedule_id !== schedule.id) {
-    const currentSchedule = await getPublicSchedule(event.id, session.schedule_id);
+    const currentSchedule = await getPublicSchedule(
+      event.id,
+      session.schedule_id,
+    );
     if (!currentSchedule) return null;
     return { session, schedule, redirectScheduleId: currentSchedule.id };
   }
@@ -268,4 +273,27 @@ export async function getNextForSchedule(
     next: (checked(data, error) as EventOccurrence[])[0] ?? null,
     changedSchedule: true,
   };
+}
+
+export async function getCalendarEvents(): Promise<CalendarEvent[]> {
+  const supabase = await createClient();
+  const events: CalendarEvent[] = [];
+  for (;;) {
+    const { data, error } = await supabase
+      .from("events")
+      .select(
+        `${EVENT_FIELDS},event_schedules(id,event_id,label,start_at,end_at,time_zone,poster_url,poster_alt,location,cancelled,recurrence_rule(frequency,interval,by_weekdays,by_month_day,by_set_position,until,count,exdates))`,
+      )
+      .eq("publication_status", "published")
+      .order("id")
+      .range(events.length, events.length + 499)
+      .returns<CalendarEvent[]>();
+    const page = checked(data, error);
+    if (!page.length) return events;
+    events.push(...page);
+  }
+}
+
+export async function getUpcomingEvents() {
+  return upcomingEvents(await getCalendarEvents());
 }

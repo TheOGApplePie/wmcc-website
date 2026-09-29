@@ -1,11 +1,11 @@
-import { getUpcomingSessions } from "../lib/public-content";
+import { getUpcomingEvents } from "../lib/public-content";
 import EventPill from "./eventPill";
 import ContentError from "./contentError";
 
 export default async function HomeEvents() {
   let events;
   try {
-    events = await getUpcomingSessions();
+    events = await getUpcomingEvents();
   } catch {
     return (
       <ContentError message="We couldn’t load upcoming events. Please try again." />
@@ -20,7 +20,7 @@ export default async function HomeEvents() {
   return (
     <div className="flex flex-col sm:flex-row sm:overflow-x-auto py-10">
       {events.map((event) => (
-        <div key={event.id} className="m-2">
+        <div key={`${event.schedule_id}:${event.start_at}`} className="m-2">
           <EventPill upcomingEvent={event} />
         </div>
       ))}
