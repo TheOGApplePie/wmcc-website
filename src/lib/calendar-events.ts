@@ -4,6 +4,7 @@ import type {
   CalendarSelection,
   RecurrenceRule,
 } from "../app/schemas/events";
+import { eventPoster } from "./event-poster";
 import { EVENT_TIME_ZONE } from "./events";
 
 export function toFloatingTime(isoDate: string, timeZone: string): string {
@@ -56,14 +57,15 @@ export function calendarEventInputs(events: CalendarEvent[]): EventInput[] {
     .filter((schedule) => !schedule.cancelled)
     .map((schedule) => {
       const timeZone = schedule.time_zone || EVENT_TIME_ZONE;
+      const poster = eventPoster(event, schedule);
       const selection: CalendarSelection = {
         ...event,
         event_id: event.id,
         schedule_id: schedule.id,
         start_at: schedule.start_at,
         end_at: schedule.end_at,
-        poster_url: schedule.poster_url ?? event.poster_url,
-        poster_alt: schedule.poster_alt ?? event.poster_alt,
+        poster_url: poster.src,
+        poster_alt: poster.alt,
         location: schedule.location ?? event.location,
         cancelled: false,
         schedule_cancelled: false,
