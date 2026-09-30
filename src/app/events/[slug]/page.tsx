@@ -8,6 +8,7 @@ import {
   getCalendarEvents,
 } from "../../../lib/public-content";
 import { EventDetailParams } from "../../schemas/events";
+import { eventPoster } from "../../../lib/event-poster";
 import EventPoster from "../../../components/eventPoster";
 import EventGallery from "../../../components/eventGallery";
 import EventScheduleSummary from "../../../components/eventScheduleSummary";
@@ -85,6 +86,7 @@ export default async function EventPage({ params, searchParams }: Props) {
     .sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
   const next = upcomingEvents([scheduledEvent], new Date(), 1)[0];
   const nextSchedule = schedules.find((schedule) => schedule.id === next?.schedule_id);
+  const poster = eventPoster(event, selection?.schedule);
   const timeZone = nextSchedule?.time_zone || EVENT_TIME_ZONE;
   const location = next?.location ?? event.location;
   const directions = location
@@ -112,8 +114,8 @@ export default async function EventPage({ params, searchParams }: Props) {
       <section className="grid md:grid-cols-2 gap-8 md:gap-12 pb-12" aria-labelledby="next-session-heading">
         <div>
           <EventPoster
-            src={next?.poster_url || event.poster_url || "/wmcc-black.png"}
-            alt={next?.poster_alt || event.poster_alt || event.title}
+            src={poster.src}
+            alt={poster.alt}
             height={700}
             width={800}
             className="w-full max-h-[650px] rounded-xl object-contain object-top"
