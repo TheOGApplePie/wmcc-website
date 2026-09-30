@@ -9,7 +9,7 @@ export default function EventLocation({
       {apiKey && (
         <iframe
           title={`Map of ${location}`}
-          className="w-full h-48 mt-3"
+          className="w-full h-72 sm:h-96 mt-6 rounded-xl border-0"
           loading="lazy"
           referrerPolicy="strict-origin-when-cross-origin"
           src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(location)}`}

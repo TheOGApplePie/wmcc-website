@@ -5,15 +5,17 @@ import { notFound, redirect } from "next/navigation";
 import {
   getEventsBySlug,
   getEventSelection,
+  getCalendarEvents,
 } from "../../../lib/public-content";
 import { EventDetailParams } from "../../schemas/events";
 import EventPoster from "../../../components/eventPoster";
 import EventGallery from "../../../components/eventGallery";
-import EventSelectedSchedule from "../../../components/eventSelectedSchedule";
+import EventScheduleSummary from "../../../components/eventScheduleSummary";
+import { upcomingEvents } from "../../../lib/upcoming-events";
 import SessionDetails from "../../../components/sessionDetails";
 import EventLocation from "../../../components/eventLocation";
 import CTALink from "../../../components/CTALink";
-import { eventHref, formatEventTime } from "../../../lib/events";
+import { eventHref, EVENT_TIME_ZONE } from "../../../lib/events";
 import { SITE_ORIGIN } from "../../../lib/site";
 
 type Props = Readonly<{
@@ -69,86 +71,95 @@ export default async function EventPage({ params, searchParams }: Props) {
   if (!parsed.success) notFound();
   const search = parsed.data;
   const event = await getEvent(slug);
-  const selection = await getEventSelection(
-    event,
-    search.schedule,
-    search.session,
-  );
-  if (!selection) notFound();
-  if (selection.redirectScheduleId) {
-    const target = eventHref(slug, search.session, selection.redirectScheduleId);
-    redirect(`${target}&page=${search.page}`);
+  const [scheduledEvent] = await getCalendarEvents(event.id);
+  if (!scheduledEvent) notFound();
+  const selection = search.schedule || search.session
+    ? await getEventSelection(event, search.schedule, search.session)
+    : null;
+  if ((search.schedule || search.session) && !selection) notFound();
+  if (selection?.redirectScheduleId) {
+    redirect(eventHref(slug, search.session, selection.redirectScheduleId));
   }
-  const { session, schedule } = selection;
-  const poster = schedule?.poster_url ? schedule : event;
-  const displayed = session ?? poster;
-  const location = session?.location ?? schedule?.location ?? event.location;
+  const schedules = scheduledEvent.event_schedules
+    .filter((schedule) => !schedule.cancelled)
+    .sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
+  const next = upcomingEvents([scheduledEvent], new Date(), 1)[0];
+  const nextSchedule = schedules.find((schedule) => schedule.id === next?.schedule_id);
+  const timeZone = nextSchedule?.time_zone || EVENT_TIME_ZONE;
+  const location = next?.location ?? event.location;
+  const directions = location
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`
+    : null;
+  const date = (value: string) => new Intl.DateTimeFormat("en-CA", {
+    timeZone, weekday: "long", month: "long", day: "numeric", year: "numeric",
+  }).format(new Date(value));
+  const time = (value: string) => new Intl.DateTimeFormat("en-CA", {
+    timeZone, hour: "numeric", minute: "2-digit",
+  }).format(new Date(value));
+  const calendarParams = next && new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${new Date(next.start_at).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}/${new Date(next.end_at).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
+    details: `${event.description || ""}\n${SITE_ORIGIN}/events/${encodeURIComponent(slug)}`,
+    location: location || "",
+    ctz: timeZone,
+  });
 
   return (
-    <main className="max-w-5xl mx-auto p-6">
-      <CTALink href="/events">
-        ← Back to events
-      </CTALink>
-      <h1 className="text-3xl my-6">{event.title}</h1>
-      <div className="grid sm:grid-cols-2 gap-6">
-        <EventPoster
-          src={displayed.poster_url || "/wmcc-black.png"}
-          alt={displayed.poster_alt ?? event.title}
-          height={700}
-          width={800}
-          className="rounded-xl object-contain"
-        />
+    <main className="max-w-5xl mx-auto px-6 py-8 sm:py-12">
+      <CTALink href="/events">← Events</CTALink>
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mt-8 mb-10">{event.title}</h1>
+      <section className="grid md:grid-cols-2 gap-8 md:gap-12 pb-12" aria-labelledby="next-session-heading">
         <div>
-          <p className="text-xl whitespace-pre-wrap">{event.description}</p>
-          <EventLocation location={location} />
+          <EventPoster
+            src={next?.poster_url || event.poster_url || "/wmcc-black.png"}
+            alt={next?.poster_alt || event.poster_alt || event.title}
+            height={700}
+            width={800}
+            className="w-full max-h-[650px] rounded-xl object-contain object-top"
+          />
+          <div className="flex flex-wrap gap-3 mt-6">
+            {calendarParams && <CTALink href={`https://calendar.google.com/calendar/render?${calendarParams}`}>Add to calendar</CTALink>}
+            {directions && <CTALink href={directions}>Directions</CTALink>}
+          </div>
+        </div>
+        <div className="md:pt-4">
+          <h3 id="next-session-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">Next session</h3>
+          {next ? (
+            <>
+              <p className="text-2xl sm:text-3xl font-semibold"><time dateTime={next.start_at}>{date(next.start_at)}</time></p>
+              <p className="text-xl mt-3">{time(next.start_at)} – {time(next.end_at)}</p>
+              <p className="text-lg mt-2 text-gray-600">{timeZone.replaceAll("_", " ")}</p>
+              <p className="text-xl whitespace-pre-line mt-8">{location || "Location to be announced"}</p>
+            </>
+          ) : <p className="text-xl">No upcoming sessions scheduled.</p>}
+          <section className="mt-10" aria-labelledby="about-heading">
+            <h3 id="about-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-5">About</h3>
+            <p className="text-lg leading-relaxed whitespace-pre-wrap">{event.description || "More details will be shared soon."}</p>
+          </section>
           {event.call_to_action_link && (
-            <CTALink href={event.call_to_action_link}>
-              {event.call_to_action_caption || "Learn more"}
-            </CTALink>
+            <div className="mt-8"><CTALink href={event.call_to_action_link}>{event.call_to_action_caption || "Learn more"}</CTALink></div>
           )}
         </div>
-      </div>
-      {schedule && (
-        <section className="pt-8" aria-labelledby="selected-schedule-heading">
-          <h2 id="selected-schedule-heading" className="text-2xl mb-4">
-            Selected schedule
-          </h2>
-          {schedule.label && <p className="text-xl mb-4">{schedule.label}</p>}
-          {schedule.cancelled && (
-            <output className="block mb-4">
-              This schedule has been cancelled.
-            </output>
-          )}
-          {session && <SessionDetails session={session} />}
-          {!session && (
-            <div>
-              <p>
-                First session:{" "}
-                <time dateTime={schedule.start_at}>
-                  {formatEventTime(schedule.start_at)}
-                </time>
-              </p>
-              <p>
-                Ends{" "}
-                <time dateTime={schedule.end_at}>
-                  {formatEventTime(schedule.end_at)}
-                </time>
-              </p>
-            </div>
-          )}
-          <Suspense
-            key={session?.id ?? schedule.id}
-            fallback={
-              <Loading inline label="Loading next occurrence…" />
-            }
-          >
-            <EventSelectedSchedule schedule={schedule} session={session} />
-          </Suspense>
+      </section>
+      {selection?.session && (
+        <section className="border-t py-8" aria-label="Selected session">
+          <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-4">Selected session</h3>
+          <SessionDetails session={selection.session} />
         </section>
       )}
-      {!schedule && (
-        <output className="block py-8">No upcoming sessions scheduled.</output>
-      )}
+      {selection?.schedule?.cancelled && <p className="pb-6">The selected schedule has been cancelled.</p>}
+      <section className="border-t py-12" aria-labelledby="schedule-heading">
+        <h3 id="schedule-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-8">Schedule</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+          {schedules.map((schedule) => <EventScheduleSummary key={schedule.id} schedule={schedule} />)}
+          {!schedules.length && <p className="col-span-full">No active schedules at this time.</p>}
+        </div>
+      </section>
+      <section className="border-t py-12" aria-labelledby="location-heading">
+        <h3 id="location-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">Location</h3>
+        <EventLocation location={location} />
+      </section>
       {event.gallery_url && (
         <Suspense fallback={<Loading inline label="Loading gallery…" />}>
           <EventGallery url={event.gallery_url} />

@@ -275,17 +275,21 @@ export async function getNextForSchedule(
   };
 }
 
-export async function getCalendarEvents(): Promise<CalendarEvent[]> {
+export async function getCalendarEvents(
+  eventId?: number,
+): Promise<CalendarEvent[]> {
   const supabase = await createClient();
   const events: CalendarEvent[] = [];
   for (;;) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("events")
       .select(
         `${EVENT_FIELDS},event_schedules(id,event_id,label,start_at,end_at,time_zone,poster_url,poster_alt,location,cancelled,recurrence_rule(frequency,interval,by_weekdays,by_month_day,by_set_position,until,count,exdates))`,
       )
       .eq("publication_status", "published")
-      .order("id")
+      .order("id");
+    if (eventId !== undefined) query = query.eq("id", eventId);
+    const { data, error } = await query
       .range(events.length, events.length + 499)
       .returns<CalendarEvent[]>();
     const page = checked(data, error);

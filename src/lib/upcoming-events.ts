@@ -1,20 +1,29 @@
 import { DateTime } from "luxon";
 import { RRule, type Options } from "rrule";
-import type { CalendarEvent, CalendarSelection, CalendarSchedule } from "../app/schemas/events";
+import type {
+  CalendarEvent,
+  CalendarSelection,
+  CalendarSchedule,
+} from "../app/schemas/events";
 import { calendarEventInputs, toFloatingTime } from "./calendar-events";
 import { EVENT_TIME_ZONE } from "./events";
 
-function recurrenceOptions(schedule: CalendarSchedule): Partial<Options> {
+export function recurrenceOptions(
+  schedule: CalendarSchedule,
+): Partial<Options> {
   const rule = schedule.recurrence_rule!;
   const timeZone = schedule.time_zone || EVENT_TIME_ZONE;
-  const floating = (value: string) => new Date(`${toFloatingTime(value, timeZone)}Z`);
+  const floating = (value: string) =>
+    new Date(`${toFloatingTime(value, timeZone)}Z`);
   const options: Partial<Options> = {
     ...RRule.parseString(`FREQ=${rule.frequency.toUpperCase()}`),
     dtstart: floating(schedule.start_at),
     interval: rule.interval ?? 1,
   };
   if (rule.by_weekdays?.length) {
-    options.byweekday = RRule.parseString(`BYDAY=${rule.by_weekdays.join(",").toUpperCase()}`).byweekday;
+    options.byweekday = RRule.parseString(
+      `BYDAY=${rule.by_weekdays.join(",").toUpperCase()}`,
+    ).byweekday;
   }
   if (rule.by_month_day) options.bymonthday = rule.by_month_day;
   if (rule.by_set_position?.length) options.bysetpos = rule.by_set_position;
@@ -30,7 +39,9 @@ function scheduleOccurrences(
   limit: number,
 ): CalendarSelection[] {
   if (schedule.cancelled) return [];
-  const [input] = calendarEventInputs([{ ...event, event_schedules: [schedule] }]);
+  const [input] = calendarEventInputs([
+    { ...event, event_schedules: [schedule] },
+  ]);
   const selection = input.extendedProps!.selection as CalendarSelection;
   const duration = Date.parse(schedule.end_at) - Date.parse(schedule.start_at);
   if (!(duration > 0)) return [];
@@ -68,10 +79,16 @@ export function upcomingEvents(
   limit = 5,
 ): CalendarSelection[] {
   if (limit <= 0) return [];
-  return events.flatMap((event) => event.event_schedules.flatMap((schedule) =>
-    scheduleOccurrences(event, schedule, now, limit),
-  )).sort((a, b) =>
-    Date.parse(a.start_at) - Date.parse(b.start_at) ||
-    a.schedule_id.localeCompare(b.schedule_id),
-  ).slice(0, limit);
+  return events
+    .flatMap((event) =>
+      event.event_schedules.flatMap((schedule) =>
+        scheduleOccurrences(event, schedule, now, limit),
+      ),
+    )
+    .sort(
+      (a, b) =>
+        Date.parse(a.start_at) - Date.parse(b.start_at) ||
+        a.schedule_id.localeCompare(b.schedule_id),
+    )
+    .slice(0, limit);
 }
