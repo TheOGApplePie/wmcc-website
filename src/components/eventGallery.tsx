@@ -36,7 +36,7 @@ export default async function EventGallery({ url }: Readonly<{ url: string }>) {
     return <p className="p-8">No gallery photos are available yet.</p>;
   return (
     <section className="p-8">
-      <h2 className="mb-5">Moments from this event</h2>
+      <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-5">Moments from this event</h3>
       <GalleryViewer images={images} />
     </section>
   );

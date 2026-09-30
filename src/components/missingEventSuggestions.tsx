@@ -1,4 +1,5 @@
 "use client";
+import Loading from "./loading";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -31,7 +32,7 @@ export default function MissingEventSuggestions() {
     };
   }, [slug, attempt]);
   if (!result)
-    return <output className="block my-8">Loading suggestions…</output>;
+    return <Loading inline label="Loading suggestions…" />;
   if (result.error)
     return (
       <div className="my-8" role="alert">

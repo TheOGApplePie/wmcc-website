@@ -1,14 +1,14 @@
 import Image from "./eventPoster";
 import Link from "next/link";
-import type { EventOccurrence } from "../app/schemas/events";
+import type { CalendarSelection } from "../app/schemas/events";
 import { eventHref, formatEventTime } from "../lib/events";
 
 export default function EventPill({
   upcomingEvent: event,
-}: Readonly<{ upcomingEvent: EventOccurrence }>) {
+}: Readonly<{ upcomingEvent: CalendarSelection }>) {
   return (
     <Link
-      href={eventHref(event.navigation_slug, event.id, event.schedule_id)}
+      href={eventHref(event.navigation_slug, undefined, event.schedule_id)}
       className="border rounded-xl p-3 min-h-[325px] block hover:shadow-md transition-shadow"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[450px] sm:w-[450px] items-center">

@@ -1,10 +1,26 @@
-export default function Loading() {
+type LoadingProps = Readonly<{
+  inline?: boolean;
+  label?: string;
+}>;
+
+export default function Loading({
+  inline = false,
+  label = "Loading…",
+}: LoadingProps) {
   return (
-    <div className="absolute top-[120px] left-0 z-[5] bg-white loader flex flex-grow-0 flex-shrink-0 items-center justify-center w-dvw h-[calc(100dvh-120px)]">
-      <span>W</span>
-      <span>M</span>
-      <span>C</span>
-      <span>C</span>
+    <div
+      role="status"
+      aria-label={label}
+      className={`bg-white text-black loader flex items-center justify-center ${
+        inline
+          ? "w-full min-h-48 py-12"
+          : "absolute top-[120px] left-0 z-[5] w-full h-[calc(100dvh-120px)]"
+      }`}
+    >
+      <span aria-hidden="true">W</span>
+      <span aria-hidden="true">M</span>
+      <span aria-hidden="true">C</span>
+      <span aria-hidden="true">C</span>
     </div>
   );
 }

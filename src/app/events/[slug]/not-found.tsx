@@ -1,3 +1,4 @@
+import Loading from "../../../components/loading";
 import { Suspense } from "react";
 import Link from "next/link";
 import MissingEventSuggestions from "../../../components/missingEventSuggestions";
@@ -10,7 +11,7 @@ export default function EventNotFound() {
       <Link href="/events" className="btn-primary">
         Browse events
       </Link>
-      <Suspense fallback={<output>Loading suggestions…</output>}>
+      <Suspense fallback={<Loading inline label="Loading suggestions…" />}>
         <MissingEventSuggestions />
       </Suspense>
     </main>
