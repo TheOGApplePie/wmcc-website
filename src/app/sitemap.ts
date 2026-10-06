@@ -6,7 +6,7 @@ import { SITE_ORIGIN } from "../lib/site";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticUrls = ["", "/about", "/contact", "/events"].map(
+  const staticUrls = ["", "/about", "/contact", "/events", "/wmcc-weekend-school", "/wmcc-sunday-arabic-school", "/wmcc-quran-program"].map(
     (path) => ({ url: `${SITE_ORIGIN}${path}` }),
   );
   const eventUrls = await getSitemapEventUrls();

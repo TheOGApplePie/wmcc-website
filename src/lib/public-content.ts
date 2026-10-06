@@ -10,7 +10,7 @@ import type {
 } from "../app/schemas/events";
 
 const EVENT_FIELDS =
-  "id,navigation_slug,title,description,poster_url,poster_alt,location,call_to_action_link,call_to_action_caption,gallery_url";
+  "id,navigation_slug,title,description,poster_url,poster_alt,location,call_to_action_link,call_to_action_caption,gallery_url,cognito_form_id";
 const SESSION_FIELDS =
   "id,event_id,schedule_id,navigation_slug,title,description,poster_url,poster_alt,location,call_to_action_link,call_to_action_caption,gallery_url,start_at,end_at,cancelled,schedule_cancelled,superseded";
 
