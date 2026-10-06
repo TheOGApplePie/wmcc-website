@@ -1,7 +1,7 @@
 import Loading from "../../../components/loading";
 import { cache, Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import {
   getEventsBySlug,
   getEventSelection,
@@ -16,7 +16,7 @@ import { upcomingEvents } from "../../../lib/upcoming-events";
 import SessionDetails from "../../../components/sessionDetails";
 import EventLocation from "../../../components/eventLocation";
 import CTALink from "../../../components/CTALink";
-import { eventHref, EVENT_TIME_ZONE } from "../../../lib/events";
+import { eventHref, programPageHref, EVENT_TIME_ZONE } from "../../../lib/events";
 import { SITE_ORIGIN } from "../../../lib/site";
 import CognitoForm from "../../../components/cognitoForm";
 
@@ -36,6 +36,8 @@ const getEvent = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const programHref = programPageHref(slug);
+  if (programHref) permanentRedirect(programHref);
   const event = await getEvent(slug);
   const description =
     event.description?.replace(/\s+/g, " ").trim() ||
@@ -69,6 +71,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const programHref = programPageHref(slug);
+  if (programHref) permanentRedirect(programHref);
   const parsed = EventDetailParams.safeParse(await searchParams);
   if (!parsed.success) notFound();
   const search = parsed.data;

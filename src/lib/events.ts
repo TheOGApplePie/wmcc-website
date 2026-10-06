@@ -9,19 +9,24 @@ const programRoutes: Record<string, string> = {
   "wmcc-quran-program": "/wmcc-quran-program",
 };
 
+export function programPageHref(name: string | null) {
+  const normalized = (name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/['’]/g, "")
+    .replace(/[\s_-]+/g, "-");
+  const key = normalized.startsWith("wmcc-") ? normalized : `wmcc-${normalized}`;
+  return Object.hasOwn(programRoutes, key) ? programRoutes[key] : null;
+}
+
 export function calendarEventHref(event: {
   navigation_slug: string | null;
   title: string;
   schedule_id: string;
 }) {
   for (const name of [event.navigation_slug, event.title]) {
-    const key = (name || "")
-      .toLowerCase()
-      .trim()
-      .replace(/['’]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^wmcc-/, "");
-    if (Object.hasOwn(programRoutes, key)) return programRoutes[key];
+    const programHref = programPageHref(name);
+    if (programHref) return programHref;
   }
   return event.navigation_slug
     ? eventHref(event.navigation_slug, undefined, event.schedule_id)
