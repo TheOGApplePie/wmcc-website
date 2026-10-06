@@ -27,14 +27,44 @@ export default function Footer() {
         ))}
       </div>
       <div className="flex">
-        <a href="https://www.facebook.com/WMCCofficial" target="_blank" rel="noopener noreferrer">
-          <Image className="inline-block mx-2" height={30} width={30} src="/facebook.png" alt="wmcc facebook" />
+        <a
+          href="https://www.facebook.com/WMCCofficial"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            className="inline-block mx-2"
+            height={30}
+            width={30}
+            src="/facebook.png"
+            alt="wmcc facebook"
+          />
         </a>
-        <a href="https://www.instagram.com/wmcc.ca/" target="_blank" rel="noopener noreferrer">
-          <Image className="inline-block mx-2" height={30} width={30} src="/instagram.svg" alt="wmcc instagram" />
+        <a
+          href="https://www.instagram.com/wmcc.ca/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            className="inline-block mx-2"
+            height={30}
+            width={30}
+            src="/instagram.svg"
+            alt="wmcc instagram"
+          />
         </a>
-        <a href="https://chat.whatsapp.com/H2O1IFhP7FjIWXik8z7NRH" target="_blank" rel="noopener noreferrer">
-          <Image className="inline-block mx-2" height={30} width={30} src="/whatsapp.svg" alt="wmcc WhatsApp" />
+        <a
+          href="https://www.tiktok.com/@wmcc_media/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            className="inline-block mx-2 invert"
+            height={30}
+            width={30}
+            src="/tiktok.png"
+            alt="wmcc tiktok"
+          />
         </a>
       </div>
     </footer>

@@ -5,6 +5,7 @@ import Script from "next/script";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import CspNavigationBoundary from "../components/cspNavigationBoundary";
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +21,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = (await headers()).get("x-nonce") || "";
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") || "";
   return (
     <html lang="en-CA">
       <head />
@@ -31,8 +33,11 @@ export default async function RootLayout({
           nonce={nonce}
           src="https://www.google.com/recaptcha/api.js"
         ></Script>
+        <a className="skip-link" href="#main-content">Skip to main content</a>
         <Header></Header>
-        {children}
+        <CspNavigationBoundary allowsCognito={requestHeaders.get("x-cognito-policy") === "enabled"}>
+          <div id="main-content" tabIndex={-1}>{children}</div>
+        </CspNavigationBoundary>
         <Analytics/>
         <Footer></Footer>
       </body>

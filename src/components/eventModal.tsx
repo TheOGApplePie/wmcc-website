@@ -5,7 +5,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons/faClose";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CTALink from "./CTALink";
 import type { CalendarSelection } from "../app/schemas/events";
-import { eventHref, formatEventTime } from "../lib/events";
+import { calendarEventHref, formatEventTime } from "../lib/events";
 
 export default function EventModal({
   event,
@@ -15,6 +15,7 @@ export default function EventModal({
   closeModal: () => void;
 }>) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const detailsHref = event ? calendarEventHref(event) : null;
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!event || !dialog) return;
@@ -73,14 +74,10 @@ export default function EventModal({
                   </time>
                 </p>
               </div>
-              {event.navigation_slug && (
+              {detailsHref && (
                 <CTALink
                   className="text-xl"
-                  href={eventHref(
-                    event.navigation_slug,
-                    undefined,
-                    event.schedule_id,
-                  )}
+                  href={detailsHref}
                 >
                   Learn more
                 </CTALink>

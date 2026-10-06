@@ -21,6 +21,7 @@ export interface PublicEvent {
   location: string | null;
   call_to_action_link: string | null;
   call_to_action_caption: string | null;
+  cognito_form_id: string | null;
   gallery_url: string | null;
 }
 

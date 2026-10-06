@@ -58,7 +58,9 @@ export default function CarouselComponent({
               slideIndex === index && "opacity-100 translate-x-0",
               slideIndex < index && "opacity-0 -translate-x-full",
               slideIndex > index && "opacity-0 translate-x-full",
-            ].filter(Boolean).join(" ")}
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             <AnnouncementSlide slide={slide} />
           </div>
