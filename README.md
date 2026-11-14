@@ -43,6 +43,9 @@ The following variables must be set in `.env.local`:
 | `CLIENT_SECRET` | Azure AD app client secret (for Microsoft Graph) |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis URL (rate limiting) |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token (rate limiting) |
+| `NEXT_PUBLIC_CLARITY_PROJECT_ID` | Microsoft Clarity project ID from Settings → Setup; omit to disable Clarity |
+
+Microsoft Clarity loads site-wide when `NEXT_PUBLIC_CLARITY_PROJECT_ID` is set. Add it to `.env.local` for local use and to the hosting environment before building and deploying. This uses Microsoft's tracking script through Next.js Script, so no additional npm package is required.
 
 ---
 

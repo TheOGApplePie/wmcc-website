@@ -9,11 +9,11 @@ export function middleware(request: NextRequest) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${allowsCognito ? "'unsafe-eval'" : ""} https://www.google.com https://www.gstatic.com https://masjidbox.com https://recaptcha.net https://www.cognitoforms.com;
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${allowsCognito ? "'unsafe-eval'" : ""} https://www.google.com https://www.gstatic.com https://masjidbox.com https://recaptcha.net https://www.cognitoforms.com https://*.clarity.ms;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     frame-src https://www.google.com https://recaptcha.net https://masjidbox.com https://www.zeffy.com https://www.cognitoforms.com https://www.recaptcha.net https://js.stripe.com;
-    connect-src 'self' ${isDevelopment ? "ws://localhost:* ws://127.0.0.1:*" : ""} https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io https://www.google.com https://www.recaptcha.net https://masjidbox.com https://www.cognitoforms.com https://vitals.vercel-insights.com;
-    img-src 'self' data: blob: https://gkpctbvyswcfccogoepl.supabase.co https://www.gstatic.com https://masjidbox.com https://*.sharepoint.com;
+    connect-src 'self' ${isDevelopment ? "ws://localhost:* ws://127.0.0.1:*" : ""} https://gkpctbvyswcfccogoepl.supabase.co https://cheerful-macaw-22556.upstash.io https://www.google.com https://www.recaptcha.net https://masjidbox.com https://www.cognitoforms.com https://*.clarity.ms https://c.bing.com;
+    img-src 'self' data: blob: https://gkpctbvyswcfccogoepl.supabase.co https://www.gstatic.com https://masjidbox.com https://*.sharepoint.com https://*.clarity.ms https://c.bing.com;
     font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com ${allowsCognito ? "https://static.cognitoforms.com" : ""};
     object-src 'none';
     base-uri 'self';
