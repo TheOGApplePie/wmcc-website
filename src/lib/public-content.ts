@@ -159,6 +159,7 @@ export async function getAnnouncements(): Promise<Announcement[]> {
       .select(
         "id,title,description,poster_url,poster_alt,call_to_action_link,call_to_action_caption",
       )
+      .eq("review_state", "approved")
       .or(`publish_at.is.null,publish_at.lte.${now}`)
       .gt("expires_at", now)
       .order("display_order", { nullsFirst: false })
@@ -300,4 +301,20 @@ export async function getCalendarEvents(
 
 export async function getUpcomingEvents() {
   return upcomingEvents(await getCalendarEvents());
+}
+
+/** Public decision only; errors must never open registration. */
+export async function getRegistrationOpen(eventId: number): Promise<boolean> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('public_registration_open', { p_event_id: eventId });
+    if (error) {
+      console.error('Registration availability RPC failed', { eventId, code: error.code });
+      return false;
+    }
+    return data === true;
+  } catch {
+    console.error('Registration availability check failed', { eventId });
+    return false;
+  }
 }

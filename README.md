@@ -36,6 +36,7 @@ The following variables must be set in `.env.local`:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service-role key used by the event registration delivery endpoint; never expose it to the browser |
 | `MAPS_API` | Google Maps Embed API key (for event detail pages and contact page) |
 | `RECAPTCHA_SITE_KEY` | Google reCAPTCHA v2 site key (contact form) |
 | `TENANT_ID` | Azure AD tenant ID (for Microsoft Graph) |
@@ -106,6 +107,8 @@ Check this for every table in a join chain, not just the root table.
 ### Announcements
 Quick messages displayed on the home page carousel. Each announcement can have a poster, title, description, and an optional call-to-action. Announcements have an expiry datetime — once passed they are no longer displayed. The carousel auto-advances every 5 seconds with a pause/play toggle (WCAG 2.2 compliant).
 
+Public reads explicitly require `review_state = 'approved'`, including for staff-session visitors, and apply the publication and expiry dates on each server request. Dashboard migration 048 must be applied before this reader is deployed. Coordinate the rollout so drafts cannot be created while the old reader remains live; it may expose drafts to staff-session visitors. See [the integration guide](docs/event-registration-integration.md) for caching and deployment details.
+
 ### Events
 Planned community activities displayed in three places:
 
@@ -114,6 +117,14 @@ Planned community activities displayed in three places:
 **Calendar page** — a full FullCalendar view. Non-recurring events are fetched by date range on every calendar navigation. Recurring events are stored as a single base event row with a recurrence rule; FullCalendar's `rrule` plugin generates all occurrences client-side. `dtstart`/`until`/`exdate` values are converted to **floating Toronto local-time strings** (no UTC offset) before being passed to FullCalendar so that `BYDAY` rules are evaluated against Toronto calendar days rather than UTC days.
 
 **Event detail page** — reached via `/events/[slug]`. For recurring events, the next (or most recent past) occurrence is computed from the recurrence rule using `rrule` with `tzid: "America/Toronto"`. The page shows a human-readable recurrence summary (e.g. "Happens every month on the first Saturday"), a Google Maps embed for the venue, and an optional photo gallery. If a slug does not match any event, up to 3 similar events are suggested using per-word `ilike` queries scored by match count (capped at 5 words).
+
+#### Event registration
+
+For a published event with an upcoming session and a Cognito form, the event page checks the dashboard's `public_registration_open` RPC before showing the registration link and form. The page checks again before submission; if the RPC is unavailable, registration is hidden or the submission is blocked. The event page is rendered dynamically and the availability endpoint is not cached.
+
+After Cognito accepts a submission, the browser sends its entry to the website's registration endpoint. The server checks the event and form association and calls `append_browser_event_registration` with the server-only service-role key. The local dashboard migration 046 converts the legacy JSON arrays to individual registration rows and defines the append RPC; migration 051 defines availability. These dashboard migrations and their dependencies must be reviewed and applied before this website is deployed. Their hosted state has not been verified. Configure the Supabase and Upstash variables above, and ensure the hosting proxy supplies trustworthy client IP headers for rate limiting.
+
+Browser delivery is best-effort and unverified: a visitor leaving, losing connectivity, or using a direct Cognito link can prevent delivery; a publicly callable endpoint can receive fabricated entries, and retries can create duplicates. Staff should reconcile with Cognito. Test with a safe form and verify availability, delivery, failure messages, and the dashboard Registrants screen before release. See [event registration integration](docs/event-registration-integration.md) for the contract and coordinated deployment steps.
 
 #### Recurring event schema
 The `recurrence_rule` table defines how an event repeats. Its TypeScript mirror is the `RecurrenceRule` interface in `src/app/schemas/events.ts`.

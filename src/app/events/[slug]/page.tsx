@@ -6,6 +6,7 @@ import {
   getEventsBySlug,
   getEventSelection,
   getCalendarEvents,
+  getRegistrationOpen,
 } from "../../../lib/public-content";
 import { EventDetailParams } from "../../schemas/events";
 import { eventPoster } from "../../../lib/event-poster";
@@ -19,6 +20,9 @@ import CTALink from "../../../components/CTALink";
 import { eventHref, programPageHref, EVENT_TIME_ZONE } from "../../../lib/events";
 import { SITE_ORIGIN } from "../../../lib/site";
 import CognitoForm from "../../../components/cognitoForm";
+import { registrationVisible } from "../../../lib/registration-client";
+
+export const dynamic = "force-dynamic";
 
 type Props = Readonly<{
   params: Promise<{ slug: string }>;
@@ -94,6 +98,8 @@ export default async function EventPage({ params, searchParams }: Props) {
   const nextSchedule = schedules.find(
     (schedule) => schedule.id === next?.schedule_id,
   );
+  const registrationOpen = next && event.cognito_form_id ? await getRegistrationOpen(event.id) : false;
+  const showRegistration = registrationVisible(Boolean(next), event.cognito_form_id, registrationOpen);
   const poster = eventPoster(event, selection?.schedule);
   const timeZone = nextSchedule?.time_zone || EVENT_TIME_ZONE;
   const location = next?.location ?? event.location;
@@ -167,7 +173,7 @@ export default async function EventPage({ params, searchParams }: Props) {
                 {event.call_to_action_caption}
               </CTALink>
             )}
-            {next && event.cognito_form_id && (
+            {showRegistration && event.cognito_form_id && (
               <a className="btn-primary" href="#sign-up-form">
                 Register Now
               </a>
@@ -245,7 +251,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           <SessionDetails session={selection.session} />
         </section>
       )}
-      {next && event.cognito_form_id && (
+      {showRegistration && event.cognito_form_id && (
         <section
           id="sign-up-form"
           className="border-t py-5"
@@ -257,7 +263,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           >
             Register for this event today!
           </h3>
-          <CognitoForm formId={event.cognito_form_id} />
+          <CognitoForm formId={event.cognito_form_id} eventId={event.id} />
         </section>
       )}
       {event.gallery_url && (
