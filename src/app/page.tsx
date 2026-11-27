@@ -6,6 +6,7 @@ import CTALink from "../components/CTALink";
 import { headers } from "next/headers";
 import HomeAnnouncements from "../components/homeAnnouncements";
 import HomeEvents from "../components/homeEvents";
+import ZeffyDonation from "../components/zeffyDonation";
 
 export default async function Home() {
   const xnonceHeader = (await headers()).get("x-nonce") || "";
@@ -80,15 +81,7 @@ export default async function Home() {
             </h1>
           </div>
           <div className="sm:p-8 w-full flex items-center justify-center">
-            <iframe
-              src="https://www.zeffy.com/en-CA/donation-form/donate-to-support-our-community-centre"
-              className="w-full max-w-3xl"
-              height={600}
-              title="WMCC Operations Donation"
-              sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
-              referrerPolicy="strict-origin"
-              loading="lazy"
-            ></iframe>
+            <ZeffyDonation nonce={xnonceHeader} />
           </div>
         </div>
       </section>
