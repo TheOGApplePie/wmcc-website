@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { cleanCognitoEntry } from '../../../../../lib/registration-entry';
 
 export const dynamic = 'force-dynamic';
 const MAX_BYTES = 128 * 1024;
@@ -36,7 +37,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
     const { formId, entry } = body as Record<string, unknown>;
     if (typeof formId !== 'string' || !formId || formId.length > 200 || !entry || typeof entry !== 'object' || Array.isArray(entry)) return reply(400);
     const supabase = createClient(supabaseUrl, key, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data, error } = await supabase.rpc('append_browser_event_registration', { p_event_id: id, p_form_id: formId, p_entry: entry });
+    const { data, error } = await supabase.rpc('append_browser_event_registration', { p_event_id: id, p_form_id: formId, p_entry: cleanCognitoEntry(entry) });
     if (error) { console.error('Registration delivery RPC failed', { eventId: id, code: error.code }); return reply(503); }
     return reply(data === true ? 200 : 400);
   } catch {
